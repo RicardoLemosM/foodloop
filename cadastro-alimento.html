@@ -56,7 +56,6 @@
       flex-wrap: wrap;
     }
 
-    /* ===== UPLOAD DE IMAGEM ===== */
     .upload-area {
       border: 2.5px dashed var(--borda);
       border-radius: var(--radius-sm);
@@ -129,13 +128,6 @@
     }
     .upload-area.tem-imagem .btn-remover-img { display: flex; }
     .btn-remover-img:hover { background: rgba(220,38,38,0.85); }
-    .upload-obrigatorio {
-      font-size: 0.8rem;
-      color: #dc2626;
-      margin-top: -0.8rem;
-      margin-bottom: 1rem;
-      display: none;
-    }
 
     .btn-importar {
       background: var(--verde);
@@ -150,7 +142,6 @@
       transition: all var(--transition);
       white-space: nowrap;
     }
-
     .btn-importar:hover {
       background: var(--verde-escuro);
       transform: translateY(-1px);
@@ -178,12 +169,12 @@
         <button class="btn-importar" onclick="abrirModalEstoque()">📦 Importar do Estoque</button>
       </div>
 
-      <form id="form-alimento">
-        <label for="nome-alimento">Nome do Alimento</label>
-        <input type="text" id="nome-alimento" name="nome-alimento" placeholder="Ex: Pão francês, Banana, Arroz..." required>
+      <form id="form-alimento" novalidate>
+        <label for="nome-alimento">Nome do Alimento *</label>
+        <input type="text" id="nome-alimento" required>
 
         <label for="categoria">Categoria</label>
-        <select id="categoria" name="categoria">
+        <select id="categoria">
           <option value="">Selecione uma categoria...</option>
           <option value="🍞 Padaria">🍞 Padaria / Panificados</option>
           <option value="🥦 Hortifruti">🥦 Hortifruti / Vegetais</option>
@@ -197,23 +188,23 @@
 
         <div class="form-row">
           <div>
-            <label for="doador-alimento">Seu nome / estabelecimento</label>
-            <input type="text" id="doador-alimento" name="doador-alimento" placeholder="Ex: Padaria Central" required>
+            <label for="doador-alimento">Seu nome / estabelecimento *</label>
+            <input type="text" id="doador-alimento" required>
           </div>
           <div>
             <label for="quantidade-alimento">Quantidade disponível</label>
-            <input type="number" id="quantidade-alimento" name="quantidade-alimento" placeholder="Ex: 20" min="1">
+            <input type="number" id="quantidade-alimento" min="1">
           </div>
         </div>
 
-        <label for="local-alimento">Local (cidade / bairro)</label>
-        <input type="text" id="local-alimento" name="local-alimento" placeholder="Ex: Centro, Ibirapitanga-BA" required>
+        <label for="local-alimento">Local (cidade / bairro) *</label>
+        <input type="text" id="local-alimento" required>
 
-        <label for="validade-alimento">Data de validade</label>
-        <input type="date" id="validade-alimento" name="validade-alimento" required>
+        <label for="validade-alimento">Data de validade *</label>
+        <input type="date" id="validade-alimento" required>
 
         <label for="obs-alimento">Observações (opcional)</label>
-        <textarea id="obs-alimento" name="obs-alimento" rows="2" placeholder="Ex: Embalagem aberta, produto fresco de hoje..." style="resize:vertical;"></textarea>
+        <textarea id="obs-alimento" rows="2" style="resize:vertical;"></textarea>
 
         <label>Foto do Alimento <span style="color:var(--cinza-medio);font-weight:400;font-size:0.85rem;">(opcional)</span></label>
         <div class="upload-area" id="upload-area">
@@ -226,9 +217,8 @@
           <img class="upload-preview" id="upload-preview" src="" alt="Preview">
           <button type="button" class="btn-remover-img" id="btn-remover-img" title="Remover foto">✕</button>
         </div>
-        <p class="upload-obrigatorio" id="erro-foto">⚠️ A foto do alimento é obrigatória.</p>
 
-        <button type="submit">📢 Publicar Alimento</button>
+        <button type="submit" id="btn-submit">📢 Publicar Alimento</button>
       </form>
 
       <div id="mensagem-alimento"></div>
@@ -248,38 +238,191 @@
 
   <script src="script.js"></script>
   <script>
-    // Verificar se o usuário está logado e é doador
-    const tipoUsuario = localStorage.getItem('foodloop_user_tipo');
-    const usuarioLogado = localStorage.getItem('foodloop_user');
+    // ========== SEGURANÇA E INICIALIZAÇÃO ==========
+    (function() {
+      // Verificar login e tipo de usuário ANTES de qualquer coisa
+      const tipo = localStorage.getItem('foodloop_user_tipo');
+      const user = localStorage.getItem('foodloop_user');
+      
+      if (!user) {
+        window.location.href = 'login.html?redirect=cadastro-alimento.html';
+        return;
+      }
+      if (tipo !== 'doador') {
+        window.location.href = 'login.html?aviso=apenas-doadores';
+        return;
+      }
 
-    if (!usuarioLogado) {
-      window.location.href = 'login.html?redirect=cadastro-alimento.html';
-    } else if (tipoUsuario === 'receptor') {
-      // Bloqueia apenas receptores explícitos — null/vazio são contas legadas, deixa passar
-      window.location.href = 'login.html?aviso=apenas-doadores';
+      // Garantir que a função mostrarToast exista (fallback)
+      if (typeof window.mostrarToast !== 'function') {
+        window.mostrarToast = function(msg, tipo = 'info') {
+          alert(msg);
+          console.log(`[Toast] ${tipo}: ${msg}`);
+        };
+      }
+
+      // Aguardar DOM completamente carregado
+      document.addEventListener('DOMContentLoaded', function() {
+        // Preencher campos automáticos
+        const usuarioNome = localStorage.getItem('foodloop_user');
+        const userLocal = localStorage.getItem('foodloop_user_local');
+        if (usuarioNome) document.getElementById('doador-alimento').value = usuarioNome;
+        if (userLocal) document.getElementById('local-alimento').value = userLocal;
+        
+        // Data mínima = hoje
+        const hoje = new Date().toISOString().split('T')[0];
+        document.getElementById('validade-alimento').min = hoje;
+        
+        // Verificar estoque para mostrar aviso
+        const estoque = JSON.parse(localStorage.getItem('foodloop_estoque')) || [];
+        if (estoque.length > 0) {
+          document.getElementById('aviso-estoque').style.display = 'flex';
+        }
+        
+        // Configurar upload de imagem
+        configurarUpload();
+        
+        // Configurar evento de submit do formulário
+        const form = document.getElementById('form-alimento');
+        form.addEventListener('submit', publicarAlimento);
+      });
+    })();
+
+    // ========== FUNÇÕES DE UPLOAD ==========
+    let imagemBase64 = null;
+
+    function configurarUpload() {
+      const uploadArea = document.getElementById('upload-area');
+      const inputFoto = document.getElementById('foto-alimento');
+      const previewImg = document.getElementById('upload-preview');
+      const btnRemover = document.getElementById('btn-remover-img');
+
+      uploadArea.addEventListener('click', function(e) {
+        if (e.target === btnRemover || btnRemover.contains(e.target)) return;
+        inputFoto.click();
+      });
+
+      btnRemover.addEventListener('click', function(e) {
+        e.stopPropagation();
+        imagemBase64 = null;
+        inputFoto.value = '';
+        previewImg.src = '';
+        uploadArea.classList.remove('tem-imagem');
+      });
+
+      function lerImagem(file) {
+        if (!file || !file.type.startsWith('image/')) {
+          mostrarToast('Selecione um arquivo de imagem válido.', 'erro');
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          mostrarToast('A imagem deve ter menos de 5MB.', 'erro');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          imagemBase64 = ev.target.result;
+          previewImg.src = imagemBase64;
+          uploadArea.classList.add('tem-imagem');
+          mostrarToast('Foto adicionada! ✅', 'sucesso');
+        };
+        reader.readAsDataURL(file);
+      }
+
+      inputFoto.addEventListener('change', function() {
+        if (this.files && this.files[0]) lerImagem(this.files[0]);
+      });
+
+      uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+      uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file) lerImagem(file);
+      });
     }
 
-    document.getElementById('validade-alimento').min = new Date().toISOString().split('T')[0];
+    // ========== FUNÇÃO PRINCIPAL DE PUBLICAÇÃO ==========
+    function publicarAlimento(event) {
+      event.preventDefault();
 
-    const usuario = localStorage.getItem('foodloop_user');
-    const userLocal = localStorage.getItem('foodloop_user_local');
-    if (usuario) document.getElementById('doador-alimento').value = usuario;
-    if (userLocal) document.getElementById('local-alimento').value = userLocal;
+      // Coletar campos
+      const nome = document.getElementById('nome-alimento').value.trim();
+      const doador = document.getElementById('doador-alimento').value.trim();
+      const local = document.getElementById('local-alimento').value.trim();
+      const validade = document.getElementById('validade-alimento').value;
+      const categoria = document.getElementById('categoria').value;
+      const quantidadeRaw = document.getElementById('quantidade-alimento').value;
+      const obs = document.getElementById('obs-alimento').value.trim();
 
-    const estoque = JSON.parse(localStorage.getItem('foodloop_estoque')) || [];
-    if (estoque.length > 0) {
-      document.getElementById('aviso-estoque').style.display = 'flex';
+      // Validação básica
+      if (!nome) {
+        mostrarToast('Por favor, informe o nome do alimento.', 'erro');
+        return;
+      }
+      if (!doador) {
+        mostrarToast('Informe o nome do estabelecimento ou seu nome.', 'erro');
+        return;
+      }
+      if (!local) {
+        mostrarToast('Informe o local (cidade/bairro).', 'erro');
+        return;
+      }
+      if (!validade) {
+        mostrarToast('Informe a data de validade.', 'erro');
+        return;
+      }
+
+      const quantidade = quantidadeRaw ? parseInt(quantidadeRaw) : null;
+
+      // Criar objeto do alimento
+      const novoAlimento = {
+        id: Date.now(),
+        nome,
+        doador,
+        local,
+        validade,
+        categoria: categoria || '',
+        quantidade,
+        obs,
+        imagem: imagemBase64,
+        criadoEm: new Date().toISOString()
+      };
+
+      // Salvar no localStorage
+      const alimentos = JSON.parse(localStorage.getItem('foodloop_alimentos')) || [];
+      alimentos.unshift(novoAlimento);
+      localStorage.setItem('foodloop_alimentos', JSON.stringify(alimentos));
+
+      // Mensagem de sucesso
+      const msgDiv = document.getElementById('mensagem-alimento');
+      msgDiv.textContent = '✅ Alimento publicado com sucesso! Redirecionando...';
+      msgDiv.style.color = 'var(--verde)';
+      msgDiv.style.fontWeight = '700';
+      msgDiv.style.textAlign = 'center';
+      msgDiv.style.marginTop = '1rem';
+
+      mostrarToast('Alimento publicado! 🎉', 'sucesso');
+
+      // Redirecionar após 1,5 segundos
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 1500);
     }
 
-    function abrirModalEstoque() {
+    // ========== FUNÇÕES DO MODAL DE ESTOQUE ==========
+    window.abrirModalEstoque = function() {
       const estoqueAtual = JSON.parse(localStorage.getItem('foodloop_estoque')) || [];
-      const lista = document.getElementById('lista-estoque-modal');
-
+      const listaDiv = document.getElementById('lista-estoque-modal');
+      
       if (estoqueAtual.length === 0) {
-        lista.innerHTML = '<p style="color:var(--cinza-medio);text-align:center;padding:1rem;">Nenhum produto no estoque.</p>';
+        listaDiv.innerHTML = '<p style="color:var(--cinza-medio);text-align:center;padding:1rem;">Nenhum produto no estoque.</p>';
       } else {
-        lista.innerHTML = estoqueAtual.map(p => `
-          <div onclick="importarProduto(${p.id})" style="cursor:pointer;padding:0.9rem 1rem;border:2px solid var(--borda);border-radius:var(--radius-sm);margin-bottom:0.6rem;transition:all 0.2s;display:flex;justify-content:space-between;align-items:center;" onmouseover="this.style.borderColor='var(--laranja)';this.style.background='var(--laranja-claro)'" onmouseout="this.style.borderColor='var(--borda)';this.style.background='white'">
+        listaDiv.innerHTML = estoqueAtual.map(p => `
+          <div onclick="importarProduto(${p.id})" style="cursor:pointer;padding:0.9rem 1rem;border:2px solid var(--borda);border-radius:var(--radius-sm);margin-bottom:0.6rem;transition:all 0.2s;display:flex;justify-content:space-between;align-items:center;" 
+               onmouseover="this.style.borderColor='var(--laranja)';this.style.background='var(--laranja-claro)'" 
+               onmouseout="this.style.borderColor='var(--borda)';this.style.background='white'">
             <div>
               <strong>${p.nome}</strong>
               <span style="display:block;font-size:0.82rem;color:var(--cinza-medio);">${p.quantidade} unidades disponíveis</span>
@@ -288,15 +431,14 @@
           </div>
         `).join('');
       }
-
       document.getElementById('modal-estoque').classList.add('aberto');
-    }
+    };
 
-    function fecharModalEstoque() {
+    window.fecharModalEstoque = function() {
       document.getElementById('modal-estoque').classList.remove('aberto');
-    }
+    };
 
-    function importarProduto(id) {
+    window.importarProduto = function(id) {
       const estoqueAtual = JSON.parse(localStorage.getItem('foodloop_estoque')) || [];
       const produto = estoqueAtual.find(p => p.id === id);
       if (produto) {
@@ -305,112 +447,11 @@
         fecharModalEstoque();
         mostrarToast(`"${produto.nome}" importado do estoque!`, 'sucesso');
       }
-    }
+    };
 
-    document.getElementById('modal-estoque').addEventListener('click', function (e) {
+    // Fechar modal ao clicar fora
+    document.getElementById('modal-estoque').addEventListener('click', function(e) {
       if (e.target === this) fecharModalEstoque();
-    });
-
-    // ===== UPLOAD DE IMAGEM =====
-    let imagemBase64 = null;
-
-    const uploadArea   = document.getElementById('upload-area');
-    const inputFoto    = document.getElementById('foto-alimento');
-    const previewImg   = document.getElementById('upload-preview');
-    const btnRemover   = document.getElementById('btn-remover-img');
-    const erroFoto     = document.getElementById('erro-foto');
-
-    // Clicar na área abre o seletor de arquivo (câmera + galeria no mobile)
-    uploadArea.addEventListener('click', function(e) {
-      // Não disparar se clicou no botão de remover
-      if (e.target === btnRemover || btnRemover.contains(e.target)) return;
-      inputFoto.click();
-    });
-
-    // Botão remover
-    btnRemover.addEventListener('click', function(e) {
-      e.stopPropagation();
-      imagemBase64 = null;
-      inputFoto.value = '';
-      previewImg.src = '';
-      uploadArea.classList.remove('tem-imagem');
-      uploadArea.style.borderColor = '';
-    });
-
-    function lerImagem(file) {
-      if (!file || !file.type.startsWith('image/')) {
-        mostrarToast('Selecione um arquivo de imagem válido.', 'erro');
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        mostrarToast('A imagem deve ter menos de 5MB.', 'erro');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = function(ev) {
-        imagemBase64 = ev.target.result;
-        previewImg.src = imagemBase64;
-        uploadArea.classList.add('tem-imagem');
-        uploadArea.style.borderColor = '';
-        erroFoto.style.display = 'none';
-        mostrarToast('Foto adicionada! ✅', 'sucesso');
-      };
-      reader.readAsDataURL(file);
-    }
-
-    inputFoto.addEventListener('change', function() {
-      if (this.files && this.files[0]) lerImagem(this.files[0]);
-    });
-
-    // Drag & drop (desktop)
-    uploadArea.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      this.classList.add('drag-over');
-    });
-    uploadArea.addEventListener('dragleave', function() {
-      this.classList.remove('drag-over');
-    });
-    uploadArea.addEventListener('drop', function(e) {
-      e.preventDefault();
-      this.classList.remove('drag-over');
-      const file = e.dataTransfer.files[0];
-      if (file) lerImagem(file);
-    });
-
-    document.getElementById('form-alimento').addEventListener('submit', function (e) {
-      e.preventDefault();
-
-      const nome = document.getElementById('nome-alimento').value.trim();
-      const doador = document.getElementById('doador-alimento').value.trim();
-      const local = document.getElementById('local-alimento').value.trim();
-      const validade = document.getElementById('validade-alimento').value;
-      const categoria = document.getElementById('categoria').value;
-      const quantidade = document.getElementById('quantidade-alimento').value;
-      const obs = document.getElementById('obs-alimento').value.trim();
-
-      const novoAlimento = {
-        id: Date.now(),
-        nome, doador, local, validade, categoria,
-        quantidade: quantidade ? parseInt(quantidade) : null,
-        obs,
-        imagem: imagemBase64,
-        criadoEm: new Date().toISOString()
-      };
-
-      const alimentos = JSON.parse(localStorage.getItem('foodloop_alimentos')) || [];
-      alimentos.unshift(novoAlimento);
-      localStorage.setItem('foodloop_alimentos', JSON.stringify(alimentos));
-
-      const msg = document.getElementById('mensagem-alimento');
-      msg.textContent = '✅ Alimento publicado com sucesso! Redirecionando...';
-      msg.style.color = 'var(--verde)';
-      msg.style.fontWeight = '700';
-      msg.style.textAlign = 'center';
-      msg.style.marginTop = '1rem';
-
-      if (typeof mostrarToast === 'function') mostrarToast('Alimento publicado! 🎉', 'sucesso');
-
-      setTimeout(() => { window.location.href = 'index.html'; }, 1400);
     });
   </script>
 </body>
