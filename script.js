@@ -111,7 +111,6 @@ function exibirSaudacao() {
   const usuario = getUsuario();
   const tipo = getTipoUsuario();
 
-  // Controla visibilidade do link de Estoque — só para doadores
   const linkEstoque = document.getElementById('link-estoque');
   if (linkEstoque) {
     linkEstoque.style.display = (tipo === 'doador') ? '' : 'none';
@@ -144,7 +143,7 @@ window.sair = function() {
   setTimeout(() => window.location.href = 'index.html', 800);
 };
 
-// ===== CARREGAR ALIMENTOS =====
+// ===== CARREGAR ALIMENTOS (COM PROMOÇÃO) =====
 
 function carregarAlimentos(filtro = '') {
   const lista = document.getElementById('lista-alimentos');
@@ -199,6 +198,18 @@ function carregarAlimentos(filtro = '') {
       validadeClass = 'validade';
     }
 
+    let promocaoHtml = '';
+    if (a.preco_promo && parseFloat(a.preco_promo) > 0) {
+      promocaoHtml = `
+        <div style="margin-top: 0.6rem;">
+          <span style="background: var(--laranja); color: white; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.7rem; font-weight: 800; display: inline-block; margin-bottom: 0.4rem;">🔥 PROMOÇÃO</span>
+          <p style="font-weight: 800; color: var(--laranja-escuro); font-size: 1.2rem; margin: 0;">
+            R$ ${parseFloat(a.preco_promo).toFixed(2).replace('.', ',')}
+          </p>
+        </div>
+      `;
+    }
+
     const emoji = window.emojiAlimento(a.nome);
     const imgHtml = a.imagem
       ? `<div class="card-alimento-img" style="padding:0;overflow:hidden;"><img src="${a.imagem}" alt="${a.nome}" style="width:100%;height:100%;object-fit:cover;display:block;"></div>`
@@ -214,6 +225,7 @@ function carregarAlimentos(filtro = '') {
           ${a.quantidade ? `<p>📦 Quantidade: ${a.quantidade}</p>` : ''}
           <p class="${validadeClass}">${validadeTexto}</p>
           ${a.categoria ? `<span class="tag-categoria">${a.categoria}</span>` : ''}
+          ${promocaoHtml}
         </div>
       </div>
     `;
@@ -357,7 +369,6 @@ function controlarBotaoCadastrar() {
   const btn = document.getElementById('btn-cadastrar-alimento');
   if (btn) btn.style.display = isDoador ? 'inline-flex' : 'none';
 
-  // Mostrar link de estoque só para doadores
   const linkEstoque = document.getElementById('link-estoque');
   if (linkEstoque) linkEstoque.style.display = isDoador ? '' : 'none';
 }
@@ -382,7 +393,6 @@ function inicializar() {
   if (stat) animateCounter(stat, disponiveis.length);
 }
 
-// Garante execução sempre após o DOM estar pronto
 function inicializarQuandoPronto() {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', inicializar);
