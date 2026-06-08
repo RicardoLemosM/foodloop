@@ -254,8 +254,8 @@
 
     if (!usuarioLogado) {
       window.location.href = 'login.html?redirect=cadastro-alimento.html';
-    } else if (tipoUsuario !== 'doador') {
-      // Bloqueia qualquer tipo que não seja explicitamente 'doador' (inclui null, receptor, etc.)
+    } else if (tipoUsuario === 'receptor') {
+      // Bloqueia apenas receptores explícitos — null/vazio são contas legadas, deixa passar
       window.location.href = 'login.html?aviso=apenas-doadores';
     }
 
