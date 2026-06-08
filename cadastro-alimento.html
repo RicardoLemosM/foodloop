@@ -51,7 +51,6 @@
       margin-bottom: 1.5rem;
       font-size: 0.9rem;
       color: var(--cinza-medio);
-      display: none;
       align-items: center;
       gap: 0.75rem;
       flex-wrap: wrap;
@@ -81,14 +80,7 @@
       overflow: hidden;
     }
     .upload-area input[type="file"] {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      cursor: pointer;
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 0;
+      display: none;
     }
     .upload-placeholder {
       pointer-events: none;
@@ -223,16 +215,16 @@
         <label for="obs-alimento">Observações (opcional)</label>
         <textarea id="obs-alimento" name="obs-alimento" rows="2" placeholder="Ex: Embalagem aberta, produto fresco de hoje..." style="resize:vertical;"></textarea>
 
-        <label>Foto do Alimento <span style="color:#dc2626;font-weight:700;">*</span></label>
-        <div class="upload-area" id="upload-area" onclick="document.getElementById('foto-alimento').click()">
-          <input type="file" id="foto-alimento" accept="image/*" capture="environment">
+        <label>Foto do Alimento <span style="color:var(--cinza-medio);font-weight:400;font-size:0.85rem;">(opcional)</span></label>
+        <div class="upload-area" id="upload-area">
+          <input type="file" id="foto-alimento" accept="image/*">
           <div class="upload-placeholder">
             <span class="upload-icon">📷</span>
             <p><strong>Clique para adicionar uma foto</strong></p>
-            <p style="font-size:0.8rem;margin-top:0.3rem;">ou arraste a imagem aqui · JPG, PNG, WEBP</p>
+            <p style="font-size:0.8rem;margin-top:0.3rem;">Câmera ou galeria · JPG, PNG, WEBP</p>
           </div>
           <img class="upload-preview" id="upload-preview" src="" alt="Preview">
-          <button type="button" class="btn-remover-img" id="btn-remover-img" onclick="removerImagem(event)" title="Remover foto">✕</button>
+          <button type="button" class="btn-remover-img" id="btn-remover-img" title="Remover foto">✕</button>
         </div>
         <p class="upload-obrigatorio" id="erro-foto">⚠️ A foto do alimento é obrigatória.</p>
 
@@ -256,13 +248,15 @@
 
   <script src="script.js"></script>
   <script>
-    // Verificar se o usuário é estabelecimento (doador), senão redirecionar
+    // Verificar se o usuário está logado e é doador
     const tipoUsuario = localStorage.getItem('foodloop_user_tipo');
-    if (!localStorage.getItem('foodloop_user')) {
+    const usuarioLogado = localStorage.getItem('foodloop_user');
+
+    if (!usuarioLogado) {
       window.location.href = 'login.html?redirect=cadastro-alimento.html';
     } else if (tipoUsuario !== 'doador') {
-      alert('Apenas estabelecimentos podem cadastrar alimentos. Faça login como estabelecimento.');
-      window.location.href = 'login.html';
+      // Bloqueia qualquer tipo que não seja explicitamente 'doador' (inclui null, receptor, etc.)
+      window.location.href = 'login.html?aviso=apenas-doadores';
     }
 
     document.getElementById('validade-alimento').min = new Date().toISOString().split('T')[0];
@@ -320,6 +314,29 @@
     // ===== UPLOAD DE IMAGEM =====
     let imagemBase64 = null;
 
+    const uploadArea   = document.getElementById('upload-area');
+    const inputFoto    = document.getElementById('foto-alimento');
+    const previewImg   = document.getElementById('upload-preview');
+    const btnRemover   = document.getElementById('btn-remover-img');
+    const erroFoto     = document.getElementById('erro-foto');
+
+    // Clicar na área abre o seletor de arquivo (câmera + galeria no mobile)
+    uploadArea.addEventListener('click', function(e) {
+      // Não disparar se clicou no botão de remover
+      if (e.target === btnRemover || btnRemover.contains(e.target)) return;
+      inputFoto.click();
+    });
+
+    // Botão remover
+    btnRemover.addEventListener('click', function(e) {
+      e.stopPropagation();
+      imagemBase64 = null;
+      inputFoto.value = '';
+      previewImg.src = '';
+      uploadArea.classList.remove('tem-imagem');
+      uploadArea.style.borderColor = '';
+    });
+
     function lerImagem(file) {
       if (!file || !file.type.startsWith('image/')) {
         mostrarToast('Selecione um arquivo de imagem válido.', 'erro');
@@ -330,29 +347,22 @@
         return;
       }
       const reader = new FileReader();
-      reader.onload = function(e) {
-        imagemBase64 = e.target.result;
-        document.getElementById('upload-preview').src = imagemBase64;
-        document.getElementById('upload-area').classList.add('tem-imagem');
-        document.getElementById('erro-foto').style.display = 'none';
+      reader.onload = function(ev) {
+        imagemBase64 = ev.target.result;
+        previewImg.src = imagemBase64;
+        uploadArea.classList.add('tem-imagem');
+        uploadArea.style.borderColor = '';
+        erroFoto.style.display = 'none';
+        mostrarToast('Foto adicionada! ✅', 'sucesso');
       };
       reader.readAsDataURL(file);
     }
 
-    document.getElementById('foto-alimento').addEventListener('change', function() {
-      if (this.files[0]) lerImagem(this.files[0]);
+    inputFoto.addEventListener('change', function() {
+      if (this.files && this.files[0]) lerImagem(this.files[0]);
     });
 
-    function removerImagem(e) {
-      e.stopPropagation();
-      imagemBase64 = null;
-      document.getElementById('foto-alimento').value = '';
-      document.getElementById('upload-preview').src = '';
-      document.getElementById('upload-area').classList.remove('tem-imagem');
-    }
-
-    // Drag & drop
-    const uploadArea = document.getElementById('upload-area');
+    // Drag & drop (desktop)
     uploadArea.addEventListener('dragover', function(e) {
       e.preventDefault();
       this.classList.add('drag-over');
@@ -369,14 +379,6 @@
 
     document.getElementById('form-alimento').addEventListener('submit', function (e) {
       e.preventDefault();
-
-      // Validar foto obrigatória
-      if (!imagemBase64) {
-        document.getElementById('erro-foto').style.display = 'block';
-        document.getElementById('upload-area').style.borderColor = '#dc2626';
-        document.getElementById('upload-area').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
 
       const nome = document.getElementById('nome-alimento').value.trim();
       const doador = document.getElementById('doador-alimento').value.trim();
@@ -402,6 +404,11 @@
       const msg = document.getElementById('mensagem-alimento');
       msg.textContent = '✅ Alimento publicado com sucesso! Redirecionando...';
       msg.style.color = 'var(--verde)';
+      msg.style.fontWeight = '700';
+      msg.style.textAlign = 'center';
+      msg.style.marginTop = '1rem';
+
+      if (typeof mostrarToast === 'function') mostrarToast('Alimento publicado! 🎉', 'sucesso');
 
       setTimeout(() => { window.location.href = 'index.html'; }, 1400);
     });
