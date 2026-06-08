@@ -351,16 +351,12 @@ function initScrollReveal() {
 
 // ===== CONTROLE DO BOTÃO CADASTRAR ALIMENTO =====
 function controlarBotaoCadastrar() {
-  const tipo = getTipoUsuario();
-  const usuario = getUsuario();
-  const isDoador = tipo === 'doador';
-
   const btn = document.getElementById('btn-cadastrar-alimento');
-  if (btn) btn.style.display = isDoador ? 'inline-flex' : 'none';
+  if (btn) btn.style.display = getTipoUsuario() === 'doador' ? 'inline-flex' : 'none';
 
   // Mostrar link de estoque só para doadores
   const linkEstoque = document.getElementById('link-estoque');
-  if (linkEstoque) linkEstoque.style.display = isDoador ? 'inline-flex' : 'none';
+  if (linkEstoque) linkEstoque.style.display = getTipoUsuario() === 'doador' ? 'inline-flex' : 'none';
 }
 
 // ===== INICIALIZAÇÃO =====
