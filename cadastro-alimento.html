@@ -3,408 +3,158 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FoodLoop - Cadastrar Alimento</title>
+  <title>FoodLoop — Conectando Alimentos, Evitando Desperdício</title>
+  <meta name="description" content="Plataforma gratuita que conecta estabelecimentos e receptores de alimentos em Ibirapitanga-BA. Reduza o desperdício, ajude quem precisa.">
   <link rel="stylesheet" href="style.css">
-  <style>
-    main {
-      background: var(--creme);
-      min-height: calc(100vh - 72px);
-      padding: 3rem 1rem;
-      display: flex;
-      justify-content: center;
-    }
-
-    .form-card {
-      background: var(--branco);
-      border-radius: var(--radius);
-      padding: 2.5rem;
-      max-width: 660px;
-      width: 100%;
-      box-shadow: var(--sombra);
-      border: 1.5px solid var(--borda);
-      height: fit-content;
-      animation: heroFadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
-
-    .form-card h2 {
-      font-family: 'Fraunces', serif;
-      font-size: 1.8rem;
-      margin-bottom: 0.4rem;
-      color: var(--cinza-escuro);
-      text-align: center;
-      letter-spacing: -0.5px;
-    }
-
-    .form-card > p {
-      text-align: center;
-      color: var(--cinza-medio);
-      margin-bottom: 2rem;
-      font-size: 0.92rem;
-    }
-
-    #aviso-estoque {
-      display: none;
-      background: var(--verde-claro);
-      border: 1.5px solid rgba(42,157,92,0.25);
-      border-radius: var(--radius-sm);
-      padding: 1rem 1.2rem;
-      margin-bottom: 1.5rem;
-      font-size: 0.9rem;
-      color: var(--cinza-medio);
-      display: none;
-      align-items: center;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-    }
-
-    /* ===== UPLOAD DE IMAGEM ===== */
-    .upload-area {
-      border: 2.5px dashed var(--borda);
-      border-radius: var(--radius-sm);
-      padding: 2rem 1rem;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.25s;
-      background: var(--cinza-claro);
-      position: relative;
-      margin-bottom: 1.2rem;
-    }
-    .upload-area:hover, .upload-area.drag-over {
-      border-color: var(--laranja);
-      background: var(--laranja-claro);
-    }
-    .upload-area.tem-imagem {
-      border-style: solid;
-      border-color: var(--verde);
-      background: var(--verde-claro);
-      padding: 0;
-      overflow: hidden;
-    }
-    .upload-area input[type="file"] {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      cursor: pointer;
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-    .upload-placeholder {
-      pointer-events: none;
-    }
-    .upload-placeholder .upload-icon {
-      font-size: 2.5rem;
-      display: block;
-      margin-bottom: 0.5rem;
-    }
-    .upload-placeholder p {
-      margin: 0;
-      color: var(--cinza-medio);
-      font-size: 0.9rem;
-    }
-    .upload-placeholder strong {
-      color: var(--laranja);
-    }
-    .upload-preview {
-      display: none;
-      width: 100%;
-      max-height: 240px;
-      object-fit: cover;
-      border-radius: calc(var(--radius-sm) - 2px);
-      pointer-events: none;
-    }
-    .upload-area.tem-imagem .upload-preview { display: block; }
-    .upload-area.tem-imagem .upload-placeholder { display: none; }
-    .upload-area.tem-imagem input[type="file"] { opacity: 0; }
-    .btn-remover-img {
-      position: absolute;
-      top: 0.5rem;
-      right: 0.5rem;
-      background: rgba(0,0,0,0.6);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 2;
-      transition: background 0.2s;
-    }
-    .upload-area.tem-imagem .btn-remover-img { display: flex; }
-    .btn-remover-img:hover { background: rgba(220,38,38,0.85); }
-    .upload-obrigatorio {
-      font-size: 0.8rem;
-      color: #dc2626;
-      margin-top: -0.8rem;
-      margin-bottom: 1rem;
-      display: none;
-    }
-
-    .btn-importar {
-      background: var(--verde);
-      color: white;
-      border: none;
-      padding: 0.4rem 1rem;
-      border-radius: var(--radius-pill);
-      cursor: pointer;
-      font-size: 0.83rem;
-      font-weight: 700;
-      font-family: 'DM Sans', sans-serif;
-      transition: all var(--transition);
-      white-space: nowrap;
-    }
-
-    .btn-importar:hover {
-      background: var(--verde-escuro);
-      transform: translateY(-1px);
-    }
-  </style>
 </head>
 <body>
 
   <header>
     <div class="logo">Food<span>Loop</span></div>
     <nav>
-      <a href="index.html">← Início</a>
-      <a href="estoque.html">📊 Meu Estoque</a>
+      <a href="#como-funciona">Como funciona</a>
+      <a href="#alimentos">Alimentos</a>
+      <a href="estoque.html" id="link-estoque">📊 Estoque</a>
       <span id="user-area"><a href="login.html" class="btn-nav-destaque">Entrar / Cadastrar</a></span>
     </nav>
   </header>
 
   <main>
-    <div class="form-card">
-      <h2>Cadastrar Alimento para Doação</h2>
-      <p>Preencha os dados do alimento. Ele ficará visível para receptores na plataforma.</p>
 
-      <div id="aviso-estoque">
-        <span>💡 <strong>Dica:</strong> Você tem produtos no seu estoque!</span>
-        <button class="btn-importar" onclick="abrirModalEstoque()">📦 Importar do Estoque</button>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-particles"></div>
+      <div class="hero-content">
+        <span class="hero-badge">🌱 Ibirapitanga–BA · Economia Circular</span>
+        <h1>Conectamos <em>estabelecimentos</em> e receptores para acabar com o desperdício de alimentos</h1>
+        <p>Mercados, padarias e produtores compartilham alimentos próximos ao vencimento com quem precisa. Rápido, seguro e 100% gratuito.</p>
+        <div class="hero-btns">
+          <a href="login.html?tab=cadastro" class="btn-cta">Quero participar 🙌</a>
+          <a href="#como-funciona" class="btn-cta-outline">Como funciona</a>
+        </div>
+      </div>
+      <div class="hero-scroll-hint">
+        <span>▼</span>
+        <span>Saiba mais</span>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <div class="stats-strip">
+      <div class="stat-item">
+        <strong id="stat-alimentos">0</strong>
+        <span>Alimentos disponíveis</span>
+      </div>
+      <div class="stat-item">
+        <strong>1,3 bi</strong>
+        <span>Toneladas desperdiçadas/ano</span>
+      </div>
+      <div class="stat-item">
+        <strong>100%</strong>
+        <span>Gratuito e seguro</span>
+      </div>
+      <div class="stat-item">
+        <strong>Lei 14.016</strong>
+        <span>Proteção para doadores</span>
+      </div>
+    </div>
+
+    <!-- COMO FUNCIONA -->
+    <section id="como-funciona">
+      <h2>Como funciona</h2>
+      <p class="secao-subtitulo">Em apenas alguns passos você já faz parte da solução</p>
+
+      <div class="passos-grid">
+        <div class="passo-card">
+          <div class="passo-numero">1</div>
+          <span class="passo-icon">📝</span>
+          <h3>Cadastre-se</h3>
+          <p>Crie sua conta como <strong>estabelecimento</strong> (mercado, padaria, restaurante) ou <strong>receptor</strong> e comece agora.</p>
+        </div>
+        <div class="passo-card">
+          <div class="passo-numero">2</div>
+          <span class="passo-icon">🥦</span>
+          <h3>Cadastre ou encontre</h3>
+          <p>Estabelecimentos publicam produtos. Receptores buscam alimentos disponíveis com nossa <strong>busca inteligente com IA</strong>.</p>
+        </div>
+        <div class="passo-card">
+          <div class="passo-numero">3</div>
+          <span class="passo-icon">🤝</span>
+          <h3>Conecte-se e retire</h3>
+          <p>Veja o local do estabelecimento e combine a retirada. Alimentos seguros, amparados pela <strong>Lei nº 14.016/2020</strong>.</p>
+        </div>
+        <div class="passo-card">
+          <div class="passo-numero">4</div>
+          <span class="passo-icon">📊</span>
+          <h3>Controle seu Estoque</h3>
+          <p>Estabelecimentos acessam o <strong>Estoque Inteligente</strong>: calcule mínimo, máximo e segurança, e receba alertas antes de desperdiçar.</p>
+        </div>
       </div>
 
-      <form id="form-alimento">
-        <label for="nome-alimento">Nome do Alimento</label>
-        <input type="text" id="nome-alimento" name="nome-alimento" placeholder="Ex: Pão francês, Banana, Arroz..." required>
-
-        <label for="categoria">Categoria</label>
-        <select id="categoria" name="categoria">
-          <option value="">Selecione uma categoria...</option>
-          <option value="🍞 Padaria">🍞 Padaria / Panificados</option>
-          <option value="🥦 Hortifruti">🥦 Hortifruti / Vegetais</option>
-          <option value="🍎 Frutas">🍎 Frutas</option>
-          <option value="🥛 Laticínios">🥛 Laticínios</option>
-          <option value="🥩 Proteínas">🥩 Carnes / Proteínas</option>
-          <option value="🍚 Grãos">🍚 Grãos / Cereais</option>
-          <option value="🧃 Bebidas">🧃 Bebidas</option>
-          <option value="🥡 Outros">🥡 Outros</option>
-        </select>
-
-        <div class="form-row">
-          <div>
-            <label for="doador-alimento">Seu nome / estabelecimento</label>
-            <input type="text" id="doador-alimento" name="doador-alimento" placeholder="Ex: Padaria Central" required>
-          </div>
-          <div>
-            <label for="quantidade-alimento">Quantidade disponível</label>
-            <input type="number" id="quantidade-alimento" name="quantidade-alimento" placeholder="Ex: 20" min="1">
-          </div>
+      <div class="tipo-uso">
+        <div class="tipo-card doador">
+          <h3>🏪 Para Estabelecimentos</h3>
+          <ul>
+            <li>Cadastre produtos próximos ao vencimento</li>
+            <li>Controle seu estoque com calculadora inteligente</li>
+            <li>Receba alertas de estoque crítico</li>
+            <li>Vincule produtos do estoque à plataforma</li>
+            <li>Protegido pela Lei nº 14.016/2020</li>
+            <li>Reduza perdas financeiras</li>
+          </ul>
         </div>
-
-        <label for="local-alimento">Local (cidade / bairro)</label>
-        <input type="text" id="local-alimento" name="local-alimento" placeholder="Ex: Centro, Ibirapitanga-BA" required>
-
-        <label for="validade-alimento">Data de validade</label>
-        <input type="date" id="validade-alimento" name="validade-alimento" required>
-
-        <label for="obs-alimento">Observações (opcional)</label>
-        <textarea id="obs-alimento" name="obs-alimento" rows="2" placeholder="Ex: Embalagem aberta, produto fresco de hoje..." style="resize:vertical;"></textarea>
-
-        <label>Foto do Alimento <span style="color:#dc2626;font-weight:700;">*</span></label>
-        <div class="upload-area" id="upload-area" onclick="document.getElementById('foto-alimento').click()">
-          <input type="file" id="foto-alimento" accept="image/*" capture="environment">
-          <div class="upload-placeholder">
-            <span class="upload-icon">📷</span>
-            <p><strong>Clique para adicionar uma foto</strong></p>
-            <p style="font-size:0.8rem;margin-top:0.3rem;">ou arraste a imagem aqui · JPG, PNG, WEBP</p>
-          </div>
-          <img class="upload-preview" id="upload-preview" src="" alt="Preview">
-          <button type="button" class="btn-remover-img" id="btn-remover-img" onclick="removerImagem(event)" title="Remover foto">✕</button>
+        <div class="tipo-card receptor">
+          <h3>🙋 Para Receptores</h3>
+          <ul>
+            <li>Busque alimentos disponíveis com IA</li>
+            <li>Veja validade e local do estabelecimento</li>
+            <li>Acesso 100% gratuito</li>
+            <li>Alimentos dentro das normas sanitárias</li>
+            <li>Ajuda a reduzir o desperdício</li>
+            <li>Cadastro simples e rápido</li>
+          </ul>
         </div>
-        <p class="upload-obrigatorio" id="erro-foto">⚠️ A foto do alimento é obrigatória.</p>
+      </div>
+    </section>
 
-        <button type="submit">📢 Publicar Alimento</button>
-      </form>
-
-      <div id="mensagem-alimento"></div>
-      <a href="index.html" class="link-voltar">← Cancelar e voltar</a>
+    <!-- LEI BANNER -->
+    <div class="lei-banner">
+      <span class="lei-icon">⚖️</span>
+      <div>
+        <h3>Doação protegida por lei</h3>
+        <p>A Lei nº 14.016/2020 isenta estabelecimentos de responsabilidade civil por alimentos próprios para consumo humano doados de boa-fé. Doe sem medo!</p>
+      </div>
     </div>
+
+    <!-- BUSCA COM IA -->
+    <section class="busca-ia">
+      <h2>Encontre alimentos perto de você</h2>
+      <p>Nossa IA busca e sugere alimentos disponíveis no sistema</p>
+      <div class="search-box">
+        <input type="text" id="busca" placeholder="Ex: pão, frutas, leite, arroz..." />
+        <button id="btn-busca">Buscar com IA 🧠</button>
+      </div>
+      <div id="resultados-busca"></div>
+    </section>
+
+    <!-- ALIMENTOS DISPONÍVEIS -->
+    <section id="alimentos">
+      <div class="secao-header">
+        <h2>Alimentos disponíveis</h2>
+        <a href="cadastro-alimento.html" id="btn-cadastrar-alimento" class="btn-adicionar-alimento" style="display: none;">➕ Cadastrar Alimento</a>
+      </div>
+      <div id="lista-alimentos" class="grid-alimentos">
+        <!-- Preenchido via JavaScript -->
+      </div>
+    </section>
+
   </main>
 
-  <!-- Modal importar do estoque -->
-  <div id="modal-estoque" class="modal-overlay">
-    <div class="modal">
-      <button class="modal-fechar" onclick="fecharModalEstoque()">✕</button>
-      <h3>📦 Importar do Estoque</h3>
-      <p style="color:var(--cinza-medio);font-size:0.9rem;margin-bottom:1.5rem;">Selecione um produto para preencher o formulário automaticamente.</p>
-      <div id="lista-estoque-modal"></div>
-    </div>
-  </div>
+  <footer>
+    <p>FoodLoop — Reduzindo o desperdício de alimentos em Ibirapitanga–BA &copy; 2025</p>
+    <p style="margin-top:0.5rem;font-size:0.82rem;">Amparado pela <a href="#">Lei nº 14.016/2020</a> · Feito com 💚 para a comunidade</p>
+  </footer>
 
   <script src="script.js"></script>
-  <script>
-    // Verificar se o usuário é estabelecimento (doador), senão redirecionar
-    const tipoUsuario = localStorage.getItem('foodloop_user_tipo');
-    if (!localStorage.getItem('foodloop_user')) {
-      window.location.href = 'login.html?redirect=cadastro-alimento.html';
-    } else if (tipoUsuario !== 'doador') {
-      alert('Apenas estabelecimentos podem cadastrar alimentos. Faça login como estabelecimento.');
-      window.location.href = 'login.html';
-    }
-
-    document.getElementById('validade-alimento').min = new Date().toISOString().split('T')[0];
-
-    const usuario = localStorage.getItem('foodloop_user');
-    const userLocal = localStorage.getItem('foodloop_user_local');
-    if (usuario) document.getElementById('doador-alimento').value = usuario;
-    if (userLocal) document.getElementById('local-alimento').value = userLocal;
-
-    const estoque = JSON.parse(localStorage.getItem('foodloop_estoque')) || [];
-    if (estoque.length > 0) {
-      document.getElementById('aviso-estoque').style.display = 'flex';
-    }
-
-    function abrirModalEstoque() {
-      const estoqueAtual = JSON.parse(localStorage.getItem('foodloop_estoque')) || [];
-      const lista = document.getElementById('lista-estoque-modal');
-
-      if (estoqueAtual.length === 0) {
-        lista.innerHTML = '<p style="color:var(--cinza-medio);text-align:center;padding:1rem;">Nenhum produto no estoque.</p>';
-      } else {
-        lista.innerHTML = estoqueAtual.map(p => `
-          <div onclick="importarProduto(${p.id})" style="cursor:pointer;padding:0.9rem 1rem;border:2px solid var(--borda);border-radius:var(--radius-sm);margin-bottom:0.6rem;transition:all 0.2s;display:flex;justify-content:space-between;align-items:center;" onmouseover="this.style.borderColor='var(--laranja)';this.style.background='var(--laranja-claro)'" onmouseout="this.style.borderColor='var(--borda)';this.style.background='white'">
-            <div>
-              <strong>${p.nome}</strong>
-              <span style="display:block;font-size:0.82rem;color:var(--cinza-medio);">${p.quantidade} unidades disponíveis</span>
-            </div>
-            <span style="font-size:1.4rem;">${window.emojiAlimento ? window.emojiAlimento(p.nome) : '🥡'}</span>
-          </div>
-        `).join('');
-      }
-
-      document.getElementById('modal-estoque').classList.add('aberto');
-    }
-
-    function fecharModalEstoque() {
-      document.getElementById('modal-estoque').classList.remove('aberto');
-    }
-
-    function importarProduto(id) {
-      const estoqueAtual = JSON.parse(localStorage.getItem('foodloop_estoque')) || [];
-      const produto = estoqueAtual.find(p => p.id === id);
-      if (produto) {
-        document.getElementById('nome-alimento').value = produto.nome;
-        if (produto.quantidade) document.getElementById('quantidade-alimento').value = produto.quantidade;
-        fecharModalEstoque();
-        mostrarToast(`"${produto.nome}" importado do estoque!`, 'sucesso');
-      }
-    }
-
-    document.getElementById('modal-estoque').addEventListener('click', function (e) {
-      if (e.target === this) fecharModalEstoque();
-    });
-
-    // ===== UPLOAD DE IMAGEM =====
-    let imagemBase64 = null;
-
-    function lerImagem(file) {
-      if (!file || !file.type.startsWith('image/')) {
-        mostrarToast('Selecione um arquivo de imagem válido.', 'erro');
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        mostrarToast('A imagem deve ter menos de 5MB.', 'erro');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        imagemBase64 = e.target.result;
-        document.getElementById('upload-preview').src = imagemBase64;
-        document.getElementById('upload-area').classList.add('tem-imagem');
-        document.getElementById('erro-foto').style.display = 'none';
-      };
-      reader.readAsDataURL(file);
-    }
-
-    document.getElementById('foto-alimento').addEventListener('change', function() {
-      if (this.files[0]) lerImagem(this.files[0]);
-    });
-
-    function removerImagem(e) {
-      e.stopPropagation();
-      imagemBase64 = null;
-      document.getElementById('foto-alimento').value = '';
-      document.getElementById('upload-preview').src = '';
-      document.getElementById('upload-area').classList.remove('tem-imagem');
-    }
-
-    // Drag & drop
-    const uploadArea = document.getElementById('upload-area');
-    uploadArea.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      this.classList.add('drag-over');
-    });
-    uploadArea.addEventListener('dragleave', function() {
-      this.classList.remove('drag-over');
-    });
-    uploadArea.addEventListener('drop', function(e) {
-      e.preventDefault();
-      this.classList.remove('drag-over');
-      const file = e.dataTransfer.files[0];
-      if (file) lerImagem(file);
-    });
-
-    document.getElementById('form-alimento').addEventListener('submit', function (e) {
-      e.preventDefault();
-
-      // Validar foto obrigatória
-      if (!imagemBase64) {
-        document.getElementById('erro-foto').style.display = 'block';
-        document.getElementById('upload-area').style.borderColor = '#dc2626';
-        document.getElementById('upload-area').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
-
-      const nome = document.getElementById('nome-alimento').value.trim();
-      const doador = document.getElementById('doador-alimento').value.trim();
-      const local = document.getElementById('local-alimento').value.trim();
-      const validade = document.getElementById('validade-alimento').value;
-      const categoria = document.getElementById('categoria').value;
-      const quantidade = document.getElementById('quantidade-alimento').value;
-      const obs = document.getElementById('obs-alimento').value.trim();
-
-      const novoAlimento = {
-        id: Date.now(),
-        nome, doador, local, validade, categoria,
-        quantidade: quantidade ? parseInt(quantidade) : null,
-        obs,
-        imagem: imagemBase64,
-        criadoEm: new Date().toISOString()
-      };
-
-      const alimentos = JSON.parse(localStorage.getItem('foodloop_alimentos')) || [];
-      alimentos.unshift(novoAlimento);
-      localStorage.setItem('foodloop_alimentos', JSON.stringify(alimentos));
-
-      const msg = document.getElementById('mensagem-alimento');
-      msg.textContent = '✅ Alimento publicado com sucesso! Redirecionando...';
-      msg.style.color = 'var(--verde)';
-
-      setTimeout(() => { window.location.href = 'index.html'; }, 1400);
-    });
-  </script>
 </body>
 </html>
