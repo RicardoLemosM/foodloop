@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoodLoop — Entrar</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    main {
+      background: linear-gradient(160deg, var(--creme) 0%, #f0fdf4 100%);
+      min-height: calc(100vh - 72px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1rem;
+    }
+
+    .login-wrap {
+      width: 100%;
+      max-width: 480px;
+      animation: heroFadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .login-logo {
+      text-align: center;
+      font-family: 'Fraunces', serif;
+      font-size: 2.6rem;
+      font-weight: 900;
+      color: var(--laranja);
+      letter-spacing: -1px;
+      margin-bottom: 0.25rem;
+    }
+    .login-logo span { color: var(--verde); }
+
+    .login-sub {
+      text-align: center;
+      color: var(--cinza-medio);
+      font-size: 0.9rem;
+      margin-bottom: 2.2rem;
+    }
+
+    .login-card {
+      background: var(--branco);
+      border-radius: var(--radius);
+      padding: 2.5rem;
+      box-shadow: 0 8px 40px rgba(124,79,42,0.12);
+      border: 1.5px solid var(--borda);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 2rem;
+      background: var(--cinza-claro);
+      border-radius: var(--radius-pill);
+      padding: 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-pill);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--cinza-medio);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .tab-btn.ativo {
+      background: var(--branco);
+      color: var(--laranja);
+      box-shadow: 0 2px 10px rgba(124,79,42,0.1);
+    }
+
+    .painel-tab { display: none; }
+    .painel-tab.ativo { display: block; }
+
+    .login-card h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.5rem;
+      color: var(--cinza-escuro);
+      margin-bottom: 1.6rem;
+      letter-spacing: -0.5px;
+    }
+
+    .erro-login {
+      display: none;
+      background: #fef2f2;
+      border-left: 4px solid #dc2626;
+      padding: 0.85rem 1rem;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin-bottom: 1.2rem;
+      font-size: 0.88rem;
+      color: #b91c1c;
+      font-weight: 600;
+    }
+
+    .info-tipo {
+      display: none;
+      margin-bottom: 1.2rem;
+      padding: 0.9rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      color: var(--cinza-medio);
+      animation: fadeSlide 0.3s ease;
+    }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 1.5rem 0;
+      color: var(--cinza-medio);
+      font-size: 0.82rem;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--borda);
+    }
+
+    .link-voltar {
+      display: block;
+      text-align: center;
+      margin-top: 1.4rem;
+      color: var(--cinza-medio);
+      font-size: 0.88rem;
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    .link-voltar:hover { color: var(--laranja); }
+
+    .btn-outline-secundario {
+      width: 100%;
+      background: transparent;
+      border: 2px solid var(--borda);
+      color: var(--cinza-medio);
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all var(--transition);
+      margin-top: 0.5rem;
+    }
+    .btn-outline-secundario:hover {
+      border-color: var(--laranja);
+      color: var(--laranja);
+      background: var(--laranja-claro);
+    }
+
+    #mensagem-cadastro {
+      margin-top: 1rem;
+      font-size: 0.92rem;
+      font-weight: 600;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">Food<span>Loop</span></div>
+    <nav>
+      <a href="index.html">← Voltar ao início</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="login-wrap">
+      <div class="login-logo">Food<span>Loop</span></div>
+      <p class="login-sub">Plataforma de doação de alimentos · Ibirapitanga-BA</p>
+
+      <div class="login-card">
+        <div class="tabs">
+          <button class="tab-btn ativo" id="tab-btn-login">Entrar</button>
+          <button class="tab-btn" id="tab-btn-cadastro">Criar conta</button>
+        </div>
+
+        <!-- PAINEL LOGIN -->
+        <div id="painel-login" class="painel-tab ativo">
+          <h2>Bem-vindo de volta! 👋</h2>
+          <div class="erro-login" id="erro-login">E-mail ou senha incorretos.</div>
+
+          <form id="form-login">
+            <label for="login-email">E-mail</label>
+            <input type="email" id="login-email" placeholder="seu@email.com" required autocomplete="email">
+
+            <label for="login-senha">Senha</label>
+            <input type="password" id="login-senha" placeholder="Sua senha" required autocomplete="current-password">
+
+            <button type="submit">Entrar na minha conta 🚀</button>
+          </form>
+
+          <div class="divider">ou</div>
+          <button class="btn-outline-secundario" id="btn-ir-cadastro">Não tenho conta — Criar agora</button>
+        </div>
+
+        <!-- PAINEL CADASTRO -->
+        <div id="painel-cadastro" class="painel-tab">
+          <h2>Crie sua conta</h2>
+
+          <form id="form-cadastro">
+            <label for="cad-nome">Nome completo</label>
+            <input type="text" id="cad-nome" placeholder="Seu nome ou nome do estabelecimento" required autocomplete="name">
+
+            <label for="cad-email">E-mail</label>
+            <input type="email" id="cad-email" placeholder="seu@email.com" required autocomplete="email">
+
+            <label for="cad-senha">Senha</label>
+            <input type="password" id="cad-senha" placeholder="Crie uma senha (mín. 6 caracteres)" required minlength="6" autocomplete="new-password">
+
+            <div class="form-row">
+              <div>
+                <label for="cad-telefone">Telefone (opcional)</label>
+                <input type="tel" id="cad-telefone" placeholder="(00) 00000-0000" autocomplete="tel">
+              </div>
+              <div>
+                <label for="cad-endereco">Cidade / Região</label>
+                <input type="text" id="cad-endereco" placeholder="Ex: Ibirapitanga-BA" required>
+              </div>
+            </div>
+
+            <label for="cad-tipo">Você é:</label>
+            <select id="cad-tipo" required>
+              <option value="">Selecione seu perfil...</option>
+              <option value="doador">🏪 Estabelecimento — Mercado, padaria, restaurante ou produtor</option>
+              <option value="receptor">🙋 Receptor — Pessoa física que deseja receber alimentos</option>
+            </select>
+
+            <div class="info-tipo" id="info-tipo"></div>
+
+            <button type="submit">Criar minha conta 🙌</button>
+          </form>
+          <div id="mensagem-cadastro"></div>
+
+          <div class="divider">ou</div>
+          <button class="btn-outline-secundario" id="btn-ir-login">Já tenho conta — Entrar</button>
+        </div>
+      </div>
+
+      <a href="index.html" class="link-voltar">Continuar sem conta →</a>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+  <script>
+    // Redirecionar se já logado
+    if (localStorage.getItem('foodloop_user')) {
+      window.location.href = 'index.html';
+    }
+
+    function trocarTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('ativo', (i === 0 && tab === 'login') || (i === 1 && tab === 'cadastro'));
+      });
+      document.getElementById('painel-login').classList.toggle('ativo', tab === 'login');
+      document.getElementById('painel-cadastro').classList.toggle('ativo', tab === 'cadastro');
+    }
+
+    // Pegar parâmetro de URL para abrir tab correta
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') === 'cadastro') trocarTab('cadastro');
+
+    // Eventos dos botões de aba (sem onclick inline)
+    document.getElementById('tab-btn-login').addEventListener('click', () => trocarTab('login'));
+    document.getElementById('tab-btn-cadastro').addEventListener('click', () => trocarTab('cadastro'));
+    document.getElementById('btn-ir-cadastro').addEventListener('click', () => trocarTab('cadastro'));
+    document.getElementById('btn-ir-login').addEventListener('click', () => trocarTab('login'));
+
+    // Info tipo usuário no cadastro
+    document.getElementById('cad-tipo').addEventListener('change', function () {
+      const info = document.getElementById('info-tipo');
+      if (this.value === 'doador') {
+        info.style.display = 'block';
+        info.style.background = 'var(--laranja-claro)';
+        info.style.borderLeft = '4px solid var(--laranja)';
+        info.innerHTML = '🏪 <strong>Estabelecimentos</strong> podem cadastrar alimentos para doação e acessar o Controle de Estoque Inteligente. Protegido pela <strong>Lei nº 14.016/2020</strong>.';
+      } else if (this.value === 'receptor') {
+        info.style.display = 'block';
+        info.style.background = 'var(--verde-claro)';
+        info.style.borderLeft = '4px solid var(--verde)';
+        info.innerHTML = '🙋 <strong>Receptores</strong> podem buscar e solicitar alimentos disponíveis próximos ao vencimento, de forma 100% gratuita.';
+      } else {
+        info.style.display = 'none';
+      }
+    });
+
+    // LOGIN
+    document.getElementById('form-login').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim().toLowerCase();
+      const senha = document.getElementById('login-senha').value;
+      const erroEl = document.getElementById('erro-login');
+
+      let usuarios = [];
+      try { usuarios = JSON.parse(localStorage.getItem('foodloop_usuarios')) || []; } catch {}
+      const usuario = usuarios.find(u => u.email.toLowerCase() === email && u.senha === senha);
+
+      if (!usuario) {
+        erroEl.style.display = 'block';
+        erroEl.textContent = '❌ E-mail ou senha incorretos. Tente novamente.';
+        return;
+      }
+
+      erroEl.style.display = 'none';
+      localStorage.setItem('foodloop_user', usuario.nome);
+      localStorage.setItem('foodloop_user_tipo', usuario.tipo);
+      localStorage.setItem('foodloop_user_local', usuario.endereco || '');
+      localStorage.setItem('foodloop_user_email', usuario.email);
+
+      if (typeof mostrarToast === 'function') mostrarToast(`Bem-vindo(a), ${usuario.nome}! 🎉`, 'sucesso');
+
+      setTimeout(() => {
+        const destino = params.get('redirect') || 'index.html';
+        window.location.href = destino;
+      }, 800);
+    });
+
+    // CADASTRO
+    document.getElementById('form-cadastro').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const nome  = document.getElementById('cad-nome').value.trim();
+      const email = document.getElementById('cad-email').value.trim().toLowerCase();
+      const senha = document.getElementById('cad-senha').value;
+      const tel   = document.getElementById('cad-telefone').value.trim();
+      const loc   = document.getElementById('cad-endereco').value.trim();
+      const tipo  = document.getElementById('cad-tipo').value;
+      const msg   = document.getElementById('mensagem-cadastro');
+
+      if (senha.length < 6) {
+        msg.textContent = '⚠️ A senha precisa ter pelo menos 6 caracteres.';
+        msg.style.color = '#dc2626';
+        return;
+      }
+      if (!tipo) {
+        msg.textContent = '⚠️ Selecione seu tipo de perfil.';
+        msg.style.color = '#dc2626';
+        return;
+      }
+
+      let usuarios = [];
+      try { usuarios = JSON.parse(localStorage.getItem('foodloop_usuarios')) || []; } catch {}
+
+      const existe = usuarios.find(u => u.email.toLowerCase() === email);
+      if (existe) {
+        msg.textContent = '⚠️ Este e-mail já está cadastrado. Faça login.';
+        msg.style.color = '#dc2626';
+        setTimeout(() => trocarTab('login'), 1500);
+        return;
+      }
+
+      usuarios.push({ nome, email, senha, telefone: tel, endereco: loc, tipo, criadoEm: new Date().toISOString() });
+      localStorage.setItem('foodloop_usuarios', JSON.stringify(usuarios));
+      localStorage.setItem('foodloop_user', nome);
+      localStorage.setItem('foodloop_user_tipo', tipo);
+      localStorage.setItem('foodloop_user_local', loc);
+      localStorage.setItem('foodloop_user_email', email);
+
+      msg.textContent = '✅ Conta criada! Redirecionando...';
+      msg.style.color = 'var(--verde)';
+
+      setTimeout(() => {
+        window.location.href = tipo === 'doador' ? 'cadastro-alimento.html' : 'index.html';
+      }, 1000);
+    });
+  </script>
+</body>
+</html>

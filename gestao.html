@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoodLoop — Painel de Gestão</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ===== GESTÃO — LAYOUT BASE ===== */
+    body { background: #F5F0EB; }
+ 
+    .gestao-topbar {
+      background: linear-gradient(135deg, #1C1917 0%, #2D1F12 60%, #1a3d28 100%);
+      color: white;
+      padding: 2.4rem 5% 0;
+      position: relative;
+      overflow: hidden;
+    }
+ 
+    .gestao-topbar::before {
+      content: '';
+      position: absolute;
+      right: -80px;
+      top: -80px;
+      width: 380px;
+      height: 380px;
+      background: radial-gradient(circle, rgba(232,98,26,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+ 
+    .gestao-topbar::after {
+      content: '';
+      position: absolute;
+      left: 30%;
+      bottom: -60px;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(42,157,92,0.13) 0%, transparent 70%);
+      pointer-events: none;
+    }
+ 
+    .topbar-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.8rem;
+    }
+ 
+    .topbar-title h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(1.7rem, 3vw, 2.4rem);
+      font-weight: 900;
+      letter-spacing: -1px;
+      margin-bottom: 0.3rem;
+    }
+ 
+    .topbar-title p {
+      color: rgba(255,255,255,0.6);
+      font-size: 0.92rem;
+    }
+ 
+    .topbar-actions {
+      display: flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+ 
+    .btn-export {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.65rem 1.3rem;
+      border-radius: var(--radius-pill);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all var(--transition);
+      border: none;
+      white-space: nowrap;
+    }
+ 
+    .btn-export-csv {
+      background: rgba(255,255,255,0.12);
+      color: white;
+      border: 1.5px solid rgba(255,255,255,0.22);
+    }
+ 
+    .btn-export-csv:hover {
+      background: rgba(255,255,255,0.22);
+      border-color: rgba(255,255,255,0.5);
+    }
+ 
+    .btn-export-json {
+      background: var(--amarelo);
+      color: var(--cinza-escuro);
+    }
+ 
+    .btn-export-json:hover {
+      background: #e0b52e;
+      transform: translateY(-2px);
+    }
+ 
+    .btn-export-print {
+      background: var(--laranja);
+      color: white;
+    }
+ 
+    .btn-export-print:hover {
+      background: var(--laranja-escuro);
+      transform: translateY(-2px);
+    }
+ 
+    /* ===== TABS ===== */
+    .gestao-tabs {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      gap: 0;
+      border-bottom: none;
+    }
+ 
+    .gestao-tab {
+      padding: 0.85rem 1.6rem;
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.55);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      font-family: 'DM Sans', sans-serif;
+      border-radius: 12px 12px 0 0;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      white-space: nowrap;
+    }
+ 
+    .gestao-tab:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.06); }
+ 
+    .gestao-tab.ativa {
+      background: var(--creme);
+      color: var(--cinza-escuro);
+      box-shadow: 0 -4px 14px rgba(0,0,0,0.12);
+    }
+ 
+    /* ===== CONTEÚDO ===== */
+    .gestao-content {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2rem 5% 4rem;
+    }
+ 
+    .painel {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+ 
+    .painel.ativo { display: block; }
+ 
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+ 
+    /* ===== KPI CARDS ===== */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 1.1rem;
+      margin-bottom: 2rem;
+    }
+ 
+    .kpi-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 1.4rem 1.6rem;
+      box-shadow: var(--sombra);
+      border: 1.5px solid var(--borda);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: all var(--transition);
+    }
+ 
+    .kpi-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--sombra-hover);
+    }
+ 
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+ 
+    .kpi-card.laranja::before { background: linear-gradient(90deg, var(--laranja), var(--amarelo)); }
+    .kpi-card.verde::before { background: linear-gradient(90deg, var(--verde), #22c55e); }
+    .kpi-card.vermelho::before { background: linear-gradient(90deg, #dc2626, #ef4444); }
+    .kpi-card.azul::before { background: linear-gradient(90deg, #2563eb, #60a5fa); }
+    .kpi-card.roxo::before { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+ 
+    .kpi-icon {
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+ 
+    .kpi-value {
+      font-family: 'Fraunces', serif;
+      font-size: 2.4rem;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--cinza-escuro);
+      letter-spacing: -1px;
+    }
+ 
+    .kpi-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--cinza-medio);
+    }
+ 
+    .kpi-trend {
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-top: auto;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--borda);
+      color: var(--cinza-medio);
+    }
+ 
+    /* ===== GRÁFICOS ===== */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.2rem;
+      margin-bottom: 2rem;
+    }
+ 
+    @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
+ 
+    .chart-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 1.8rem;
+      box-shadow: var(--sombra);
+      border: 1.5px solid var(--borda);
+    }
+ 
+    .chart-card h3 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.2rem;
+      color: var(--cinza-escuro);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+ 
+    .chart-wrap {
+      position: relative;
+      height: 240px;
+    }
+ 
+    /* Gráfico de barras customizado */
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.5rem;
+      height: 100%;
+      padding-bottom: 28px;
+      position: relative;
+    }
+ 
+    .bar-chart::after {
+      content: '';
+      position: absolute;
+      bottom: 28px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--borda);
+    }
+ 
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+ 
+    .bar-fill {
+      width: 100%;
+      border-radius: 6px 6px 0 0;
+      min-height: 4px;
+      transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      cursor: pointer;
+    }
+ 
+    .bar-fill:hover::after {
+      content: attr(data-value);
+      position: absolute;
+      top: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--cinza-escuro);
+      color: white;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+ 
+    .bar-label {
+      font-size: 0.68rem;
+      color: var(--cinza-medio);
+      text-align: center;
+      font-weight: 600;
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-top: 4px;
+    }
+ 
+    .bar-value {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--cinza-escuro);
+    }
+ 
+    /* Donut chart */
+    .donut-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.2rem;
+      height: 100%;
+      justify-content: center;
+    }
+ 
+    .donut-svg-wrap {
+      position: relative;
+    }
+ 
+    .donut-center-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+ 
+    .donut-center-text strong {
+      display: block;
+      font-family: 'Fraunces', serif;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--cinza-escuro);
+      line-height: 1;
+    }
+ 
+    .donut-center-text span {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--cinza-medio);
+      letter-spacing: 0.5px;
+    }
+ 
+    .donut-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+    }
+ 
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+ 
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+ 
+    .legend-count {
+      margin-left: auto;
+      font-family: 'Fraunces', serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+ 
+    /* ===== LINHA DO TEMPO ===== */
+    .timeline-chart {
+      position: relative;
+      height: 100%;
+    }
+ 
+    .sparkline-wrap {
+      height: 100%;
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+    }
+ 
+    /* ===== ALERTA CARDS ===== */
+    .alertas-lista {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+ 
+    .alerta-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.2rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.87rem;
+      animation: fadeIn 0.3s ease both;
+    }
+ 
+    .alerta-item.critico { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .alerta-item.atencao { background: #fffbeb; border-left: 4px solid #d97706; }
+    .alerta-item.info { background: var(--verde-claro); border-left: 4px solid var(--verde); }
+ 
+    .alerta-emoji { font-size: 1.4rem; }
+    .alerta-texto { flex: 1; }
+    .alerta-texto strong { display: block; font-weight: 700; color: var(--cinza-escuro); }
+    .alerta-texto span { color: var(--cinza-medio); font-size: 0.8rem; }
+ 
+    /* ===== TABELAS ===== */
+    .tabela-section {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--sombra);
+      border: 1.5px solid var(--borda);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+ 
+    .tabela-header {
+      padding: 1.4rem 1.8rem;
+      border-bottom: 1px solid var(--borda);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+ 
+    .tabela-header h3 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.2rem;
+      color: var(--cinza-escuro);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+ 
+    .tabela-filtros {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+ 
+    .filtro-input {
+      padding: 0.55rem 1rem;
+      border: 1.5px solid var(--borda);
+      border-radius: var(--radius-pill);
+      font-size: 0.84rem;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--creme);
+      color: var(--cinza-escuro);
+      transition: border-color var(--transition);
+      min-width: 160px;
+    }
+ 
+    .filtro-input:focus {
+      outline: none;
+      border-color: var(--laranja);
+    }
+ 
+    .filtro-select {
+      padding: 0.55rem 1rem;
+      border: 1.5px solid var(--borda);
+      border-radius: var(--radius-pill);
+      font-size: 0.84rem;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--creme);
+      color: var(--cinza-escuro);
+      cursor: pointer;
+    }
+ 
+    .tabela-wrapper {
+      overflow-x: auto;
+    }
+ 
+    .tabela-gestao {
+      width: 100%;
+      border-collapse: collapse;
+    }
+ 
+    .tabela-gestao th {
+      background: var(--cinza-claro);
+      padding: 0.85rem 1.1rem;
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--cinza-medio);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+      transition: background var(--transition);
+    }
+ 
+    .tabela-gestao th:hover { background: #ede8e3; }
+ 
+    .tabela-gestao th.sorted-asc::after { content: ' ↑'; color: var(--laranja); }
+    .tabela-gestao th.sorted-desc::after { content: ' ↓'; color: var(--laranja); }
+ 
+    .tabela-gestao td {
+      padding: 0.9rem 1.1rem;
+      border-bottom: 1px solid var(--borda);
+      font-size: 0.88rem;
+      vertical-align: middle;
+    }
+ 
+    .tabela-gestao tr:last-child td { border-bottom: none; }
+ 
+    .tabela-gestao tbody tr {
+      transition: background var(--transition);
+    }
+ 
+    .tabela-gestao tbody tr:hover { background: var(--creme); }
+ 
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.22rem 0.7rem;
+      border-radius: 100px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+ 
+    .badge-doador { background: #fee2e2; color: #b91c1c; }
+    .badge-receptor { background: #dcfce7; color: #166534; }
+    .badge-vencendo { background: #fef3c7; color: #92400e; }
+    .badge-vencido { background: #fee2e2; color: #b91c1c; }
+    .badge-ok { background: var(--verde-claro); color: var(--verde-escuro); }
+ 
+    .acoes-cell {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+    }
+ 
+    .btn-acao {
+      padding: 0.35rem 0.8rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all var(--transition);
+    }
+ 
+    .btn-acao-editar { background: var(--verde-claro); color: var(--verde-escuro); }
+    .btn-acao-editar:hover { background: var(--verde); color: white; }
+    .btn-acao-excluir { background: #fee2e2; color: #dc2626; }
+    .btn-acao-excluir:hover { background: #dc2626; color: white; }
+ 
+    .tabela-footer {
+      padding: 1rem 1.8rem;
+      border-top: 1px solid var(--borda);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+      color: var(--cinza-medio);
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+ 
+    /* ===== PAGINAÇÃO ===== */
+    .paginacao {
+      display: flex;
+      gap: 0.35rem;
+      align-items: center;
+    }
+ 
+    .page-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1.5px solid var(--borda);
+      background: white;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--cinza-medio);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      font-family: 'DM Sans', sans-serif;
+    }
+ 
+    .page-btn:hover { border-color: var(--laranja); color: var(--laranja); }
+    .page-btn.ativa { background: var(--laranja); color: white; border-color: var(--laranja); }
+ 
+    /* ===== RESUMO ESTATÍSTICO ===== */
+    .resumo-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.2rem;
+      margin-bottom: 2rem;
+    }
+ 
+    .resumo-stat-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 1.6rem;
+      box-shadow: var(--sombra);
+      border: 1.5px solid var(--borda);
+    }
+ 
+    .resumo-stat-card h4 {
+      font-family: 'Fraunces', serif;
+      font-size: 1rem;
+      color: var(--cinza-escuro);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+ 
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--borda);
+      font-size: 0.86rem;
+    }
+ 
+    .stat-row:last-child { border-bottom: none; }
+    .stat-row-label { color: var(--cinza-medio); }
+    .stat-row-value { font-weight: 700; color: var(--cinza-escuro); }
+ 
+    /* ===== PROGRESS BAR ===== */
+    .progress-bar-wrap {
+      margin: 0.4rem 0;
+    }
+ 
+    .progress-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--cinza-medio);
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+    }
+ 
+    .progress-bar-track {
+      height: 8px;
+      background: var(--cinza-claro);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+ 
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 100px;
+      transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+ 
+    /* ===== MODAL EDITAR ===== */
+    .modal-editar-completo {
+      max-width: 600px;
+    }
+ 
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem 1.2rem;
+    }
+ 
+    @media (max-width: 500px) { .modal-grid { grid-template-columns: 1fr; } }
+ 
+    .modal-grid .full-width { grid-column: 1 / -1; }
+ 
+    .modal-editar-completo label {
+      display: block;
+      font-weight: 700;
+      font-size: 0.78rem;
+      color: var(--cinza-medio);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.3rem;
+    }
+ 
+    .modal-editar-completo input,
+    .modal-editar-completo select,
+    .modal-editar-completo textarea {
+      width: 100%;
+      padding: 0.75rem 0.9rem;
+      border: 2px solid var(--borda);
+      border-radius: var(--radius-sm);
+      font-size: 0.92rem;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--creme);
+      color: var(--cinza-escuro);
+      transition: border-color var(--transition);
+    }
+ 
+    .modal-editar-completo input:focus,
+    .modal-editar-completo select:focus,
+    .modal-editar-completo textarea:focus {
+      outline: none;
+      border-color: var(--laranja);
+      box-shadow: 0 0 0 3px rgba(232,98,26,0.1);
+    }
+ 
+
+    .btn-acao-promo {
+      background: var(--laranja-claro);
+      color: var(--laranja);
+      border: 1.5px solid rgba(232,98,26,0.25);
+      font-size: 0.85rem;
+      min-width: 36px;
+    }
+    .btn-acao-promo:hover {
+      background: var(--laranja);
+      color: white;
+      border-color: var(--laranja);
+    }
+    .btn-acao-promo.ativa {
+      background: var(--laranja);
+      color: white;
+      border-color: var(--laranja);
+    }
+    .promo-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--laranja), var(--amarelo));
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 6px;
+      margin-left: 3px;
+      vertical-align: middle;
+      letter-spacing: 0.2px;
+    }
+    /* Modal promoção */
+    .modal-promo { max-width: 440px; }
+    .promo-produto-nome {
+      background: var(--laranja-claro);
+      border-left: 4px solid var(--laranja);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem;
+      font-weight: 700;
+      color: var(--cinza-escuro);
+      font-size: 1rem;
+    }
+    .preco-preview {
+      display: none;
+      background: var(--verde-claro);
+      border-left: 4px solid var(--verde);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      padding: 0.7rem 1rem;
+      margin-top: -0.5rem;
+      margin-bottom: 1rem;
+      font-size: 0.88rem;
+      color: var(--verde-escuro);
+      font-weight: 600;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .gestao-empty {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--cinza-medio);
+    }
+ 
+    .gestao-empty .empty-emoji { font-size: 3rem; display: block; margin-bottom: 1rem; }
+    .gestao-empty h3 { font-family: 'Fraunces', serif; font-size: 1.3rem; color: var(--cinza-escuro); margin-bottom: 0.5rem; }
+ 
+    /* ===== PRINT ===== */
+    @media print {
+      header, .gestao-tabs, .topbar-actions, .acoes-cell, .tabela-filtros, .paginacao, .tabela-footer { display: none !important; }
+      .gestao-topbar { background: white !important; color: black !important; }
+      .painel { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+ 
+  <header>
+    <div class="logo">Food<span>Loop</span></div>
+    <nav>
+      <a href="index.html">← Início</a>
+      <a href="estoque.html">📊 Estoque</a>
+      <a href="cadastro-alimento.html">➕ Adicionar</a>
+      <span id="user-area"></span>
+    </nav>
+  </header>
+ 
+  <div class="gestao-topbar">
+    <div class="topbar-inner">
+      <div class="topbar-title">
+        <h1>📋 Painel de Gestão</h1>
+        <p>Dados em tempo real · Atualizado agora · <span id="data-agora"></span></p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn-export btn-export-csv" onclick="exportarCSV()">📄 Exportar CSV</button>
+        <button class="btn-export btn-export-json" onclick="exportarJSON()">📦 Exportar JSON</button>
+        <button class="btn-export btn-export-print" onclick="window.print()">🖨️ Imprimir</button>
+      </div>
+    </div>
+    <div class="gestao-tabs">
+      <button class="gestao-tab ativa" onclick="trocarPainel('dashboard', this)">📊 Dashboard</button>
+      <button class="gestao-tab" onclick="trocarPainel('usuarios', this)">👥 Usuários</button>
+      <button class="gestao-tab" onclick="trocarPainel('alimentos', this)">🥗 Alimentos</button>
+      <button class="gestao-tab" onclick="trocarPainel('estatisticas', this)">📈 Estatísticas</button>
+    </div>
+  </div>
+ 
+  <div class="gestao-content">
+ 
+    <!-- ===================== PAINEL DASHBOARD ===================== -->
+    <div id="painel-dashboard" class="painel ativo">
+ 
+      <!-- KPI Cards -->
+      <div class="kpi-grid" id="kpi-grid"></div>
+ 
+      <!-- Charts row -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>🍽️ Alimentos por Categoria</h3>
+          <div class="chart-wrap">
+            <div class="bar-chart" id="chart-categorias"></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>👥 Perfil de Usuários</h3>
+          <div class="chart-wrap">
+            <div class="donut-wrap" id="chart-usuarios"></div>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Segunda linha de charts -->
+      <div class="charts-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="chart-card">
+          <h3>⚠️ Status de Validade</h3>
+          <div class="chart-wrap">
+            <div class="bar-chart" id="chart-validades"></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>🔔 Alertas do Sistema</h3>
+          <div class="alertas-lista" id="alertas-lista" style="height:100%;overflow-y:auto;"></div>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- ===================== PAINEL USUÁRIOS ===================== -->
+    <div id="painel-usuarios" class="painel">
+      <div class="tabela-section">
+        <div class="tabela-header">
+          <h3>👥 Usuários Cadastrados</h3>
+          <div class="tabela-filtros">
+            <input type="text" class="filtro-input" id="filtro-usuario" placeholder="🔍 Buscar usuário..." oninput="filtrarUsuarios()">
+            <select class="filtro-select" id="filtro-tipo-usuario" onchange="filtrarUsuarios()">
+              <option value="">Todos os tipos</option>
+              <option value="doador">Estabelecimentos</option>
+              <option value="receptor">Receptores</option>
+            </select>
+          </div>
+        </div>
+        <div class="tabela-wrapper">
+          <table class="tabela-gestao">
+            <thead>
+              <tr>
+                <th onclick="ordenarTabela('usuarios','nome',this)">Nome</th>
+                <th onclick="ordenarTabela('usuarios','email',this)">E-mail</th>
+                <th>Telefone</th>
+                <th onclick="ordenarTabela('usuarios','endereco',this)">Cidade</th>
+                <th onclick="ordenarTabela('usuarios','tipo',this)">Tipo</th>
+                <th onclick="ordenarTabela('usuarios','criadoEm',this)">Cadastro</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-usuarios"></tbody>
+          </table>
+        </div>
+        <div class="tabela-footer">
+          <span id="usuarios-count">0 usuários</span>
+          <div class="paginacao" id="pag-usuarios"></div>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- ===================== PAINEL ALIMENTOS ===================== -->
+    <div id="painel-alimentos" class="painel">
+      <div class="tabela-section">
+        <div class="tabela-header">
+          <h3>🥗 Alimentos Publicados</h3>
+          <div class="tabela-filtros">
+            <input type="text" class="filtro-input" id="filtro-alimento" placeholder="🔍 Buscar alimento..." oninput="filtrarAlimentos()">
+            <select class="filtro-select" id="filtro-categoria" onchange="filtrarAlimentos()">
+              <option value="">Todas categorias</option>
+              <option value="🍞 Padaria">🍞 Padaria</option>
+              <option value="🥦 Hortifruti">🥦 Hortifruti</option>
+              <option value="🍎 Frutas">🍎 Frutas</option>
+              <option value="🥛 Laticínios">🥛 Laticínios</option>
+              <option value="🥩 Proteínas">🥩 Proteínas</option>
+              <option value="🍚 Grãos">🍚 Grãos</option>
+              <option value="🧃 Bebidas">🧃 Bebidas</option>
+              <option value="🥡 Outros">🥡 Outros</option>
+            </select>
+            <select class="filtro-select" id="filtro-validade-status" onchange="filtrarAlimentos()">
+              <option value="">Todos status</option>
+              <option value="vencido">Vencidos</option>
+              <option value="hoje">Vence hoje</option>
+              <option value="urgente">Urgente (≤3 dias)</option>
+              <option value="atencao">Atenção (≤7 dias)</option>
+              <option value="ok">OK (+7 dias)</option>
+            </select>
+          </div>
+        </div>
+        <div class="tabela-wrapper">
+          <table class="tabela-gestao">
+            <thead>
+              <tr>
+                <th onclick="ordenarTabela('alimentos','nome',this)">Nome</th>
+                <th onclick="ordenarTabela('alimentos','doador',this)">Estabelecimento</th>
+                <th onclick="ordenarTabela('alimentos','local',this)">Local</th>
+                <th onclick="ordenarTabela('alimentos','validade',this)">Validade</th>
+                <th>Status</th>
+                <th onclick="ordenarTabela('alimentos','quantidade',this)">Qtd.</th>
+                <th>Categoria</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-alimentos"></tbody>
+          </table>
+        </div>
+        <div class="tabela-footer">
+          <span id="alimentos-count">0 alimentos</span>
+          <div class="paginacao" id="pag-alimentos"></div>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- ===================== PAINEL ESTATÍSTICAS ===================== -->
+    <div id="painel-estatisticas" class="painel">
+ 
+      <div class="resumo-stats-grid" id="resumo-stats-grid"></div>
+ 
+      <!-- Gráfico de barras por categoria (maior) -->
+      <div class="chart-card" style="margin-bottom:1.5rem;">
+        <h3>📊 Distribuição por Categoria — Gráfico Completo</h3>
+        <div style="height:320px; position:relative;">
+          <div class="bar-chart" id="chart-stats-full" style="gap:0.7rem;"></div>
+        </div>
+      </div>
+ 
+      <!-- Gráfico de validade -->
+      <div class="chart-card" style="margin-bottom:1.5rem;">
+        <h3>⏰ Perfil de Validade dos Alimentos</h3>
+        <div style="height:260px; position:relative;">
+          <div class="bar-chart" id="chart-stats-validade" style="gap:0.7rem;"></div>
+        </div>
+      </div>
+ 
+    </div>
+  </div>
+ 
+  <!-- ===== MODAL EDITAR ALIMENTO ===== -->
+  <div id="modal-editar-alimento" class="modal-overlay">
+    <div class="modal modal-editar-completo">
+      <button class="modal-fechar" onclick="fecharModal('modal-editar-alimento')">✕</button>
+      <h3>✏️ Editar Alimento</h3>
+      <p style="color:var(--cinza-medio);font-size:0.88rem;margin-bottom:1.5rem;">Atualize os dados do alimento abaixo.</p>
+      <input type="hidden" id="edit-alimento-id">
+      <div class="modal-grid">
+        <div class="full-width">
+          <label>Nome do Alimento</label>
+          <input type="text" id="edit-nome">
+        </div>
+        <div>
+          <label>Estabelecimento</label>
+          <input type="text" id="edit-doador">
+        </div>
+        <div>
+          <label>Local</label>
+          <input type="text" id="edit-local">
+        </div>
+        <div>
+          <label>Validade</label>
+          <input type="date" id="edit-validade">
+        </div>
+        <div>
+          <label>Quantidade</label>
+          <input type="number" id="edit-quantidade" min="0">
+        </div>
+        <div class="full-width">
+          <label>Categoria</label>
+          <select id="edit-categoria">
+            <option value="">Sem categoria</option>
+            <option value="🍞 Padaria">🍞 Padaria / Panificados</option>
+            <option value="🥦 Hortifruti">🥦 Hortifruti</option>
+            <option value="🍎 Frutas">🍎 Frutas</option>
+            <option value="🥛 Laticínios">🥛 Laticínios</option>
+            <option value="🥩 Proteínas">🥩 Carnes / Proteínas</option>
+            <option value="🍚 Grãos">🍚 Grãos / Cereais</option>
+            <option value="🧃 Bebidas">🧃 Bebidas</option>
+            <option value="🥡 Outros">🥡 Outros</option>
+          </select>
+        </div>
+        <div class="full-width">
+          <label>Observações</label>
+          <textarea id="edit-obs" rows="2" style="resize:vertical;"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="margin-top:1.2rem;">
+        <button class="btn-modal-cancelar" onclick="fecharModal('modal-editar-alimento')">Cancelar</button>
+        <button class="btn-modal-salvar" onclick="salvarEdicaoAlimento()">💾 Salvar Alterações</button>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- ===== MODAL EDITAR USUÁRIO ===== -->
+  <div id="modal-editar-usuario" class="modal-overlay">
+    <div class="modal modal-editar-completo">
+      <button class="modal-fechar" onclick="fecharModal('modal-editar-usuario')">✕</button>
+      <h3>✏️ Editar Usuário</h3>
+      <input type="hidden" id="edit-user-email-original">
+      <div class="modal-grid">
+        <div class="full-width">
+          <label>Nome Completo</label>
+          <input type="text" id="edit-user-nome">
+        </div>
+        <div>
+          <label>E-mail</label>
+          <input type="email" id="edit-user-email">
+        </div>
+        <div>
+          <label>Telefone</label>
+          <input type="tel" id="edit-user-telefone">
+        </div>
+        <div>
+          <label>Cidade / Região</label>
+          <input type="text" id="edit-user-endereco">
+        </div>
+        <div class="full-width">
+          <label>Tipo de Perfil</label>
+          <select id="edit-user-tipo">
+            <option value="doador">🏪 Estabelecimento</option>
+            <option value="receptor">🙋 Receptor</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer" style="margin-top:1.2rem;">
+        <button class="btn-modal-cancelar" onclick="fecharModal('modal-editar-usuario')">Cancelar</button>
+        <button class="btn-modal-salvar" onclick="salvarEdicaoUsuario()">💾 Salvar</button>
+      </div>
+    </div>
+  </div>
+ 
+  <script src="script.js"></script>
+  <script>
+  // ===== CONTROLE DE ACESSO =====
+  const tipoAcesso = localStorage.getItem('foodloop_user_tipo');
+  if (tipoAcesso !== 'doador') {
+    mostrarToast('Acesso negado. Apenas estabelecimentos podem acessar a gestão.', 'erro');
+    setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+  }
+ 
+  // ===== DATA ATUAL =====
+  const agora = new Date();
+  document.getElementById('data-agora').textContent = agora.toLocaleString('pt-BR', {
+    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+  });
+ 
+  // ===== ESTADO GLOBAL =====
+  let paginaUsuarios = 1;
+  let paginaAlimentos = 1;
+  const ITENS_POR_PAGINA = 10;
+  let sortState = { usuarios: { col: null, dir: 1 }, alimentos: { col: null, dir: 1 } };
+  let usuariosFiltrados = [];
+  let alimentosFiltrados = [];
+ 
+  // ===== NAVEGAÇÃO =====
+  function trocarPainel(nome, tab) {
+    document.querySelectorAll('.painel').forEach(p => p.classList.remove('ativo'));
+    document.querySelectorAll('.gestao-tab').forEach(t => t.classList.remove('ativa'));
+    document.getElementById('painel-' + nome).classList.add('ativo');
+    tab.classList.add('ativa');
+  }
+ 
+  // ===== HELPERS =====
+  function diasParaValidade(dataValidade) {
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const validade = new Date(dataValidade + 'T00:00:00');
+    return Math.round((validade - hoje) / (1000 * 60 * 60 * 24));
+  }
+ 
+  function formatarData(data) {
+    if (!data) return '—';
+    const [a, m, d] = data.split('-');
+    return `${d}/${m}/${a}`;
+  }
+ 
+  function statusValidade(validade) {
+    if (!validade) return { label: '—', badge: '' };
+    const dias = diasParaValidade(validade);
+    if (dias < 0) return { label: 'Vencido', badge: 'badge-vencido', dias };
+    if (dias === 0) return { label: 'Vence hoje', badge: 'badge-vencendo', dias };
+    if (dias <= 3) return { label: `${dias}d — Urgente`, badge: 'badge-vencendo', dias };
+    if (dias <= 7) return { label: `${dias}d — Atenção`, badge: 'badge-vencendo', dias };
+    return { label: `${dias}d — OK`, badge: 'badge-ok', dias };
+  }
+ 
+  function fecharModal(id) {
+    document.getElementById(id).classList.remove('aberto');
+  }
+ 
+  // ===== KPI CARDS =====
+  function renderKPIs() {
+    const usuarios = JSON.parse(localStorage.getItem('foodloop_usuarios')) || [];
+    const alimentos = JSON.parse(localStorage.getItem('foodloop_alimentos')) || [];
+    const estoque = JSON.parse(localStorage.getItem('foodloop_estoque')) || [];
+ 
+    const estabelecimentos = usuarios.filter(u => u.tipo === 'doador').length;
+    const receptores = usuarios.filter(u => u.tipo === 'receptor').length;
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const disponiveis = alimentos.filter(a => !a.validade || diasParaValidade(a.validade) >= 0);
+    const criticos = alimentos.filter(a => a.validade && diasParaValidade(a.validade) >= 0 && diasParaValidade(a.validade) <= 3);
+    const vencidos = alimentos.filter(a => a.validade && diasParaValidade(a.validade) < 0);
+ 
+    const kpis = [
+      { icon: '👥', value: usuarios.length, label: 'Total de Usuários', trend: `${estabelecimentos} estab. · ${receptores} recept.`, classe: 'laranja' },
+      { icon: '🥗', value: disponiveis.length, label: 'Alimentos Ativos', trend: `${alimentos.length} cadastros total`, classe: 'verde' },
+      { icon: '⚠️', value: criticos.length, label: 'Vencem em ≤3 dias', trend: 'Requer atenção imediata', classe: 'vermelho' },
+      { icon: '❌', value: vencidos.length, label: 'Alimentos Vencidos', trend: 'Devem ser removidos', classe: 'roxo' },
+      { icon: '📦', value: estoque.length, label: 'Itens no Estoque', trend: 'Produtos cadastrados', classe: 'azul' },
+    ];
+ 
+    const grid = document.getElementById('kpi-grid');
+    grid.innerHTML = kpis.map((k, i) => `
+      <div class="kpi-card ${k.classe}" style="animation-delay:${i*0.08}s;animation:fadeIn 0.5s ease ${i*0.08}s both;">
+        <span class="kpi-icon">${k.icon}</span>
+        <span class="kpi-value" data-target="${k.value}">0</span>
+        <span class="kpi-label">${k.label}</span>
+        <div class="kpi-trend">${k.trend}</div>
+      </div>
+    `).join('');
+ 
+    // Animação contador
+    document.querySelectorAll('.kpi-value').forEach(el => {
+      const target = parseInt(el.dataset.target);
+      let current = 0;
+      const step = Math.max(1, Math.ceil(target / 30));
+      const interval = setInterval(() => {
+        current = Math.min(current + step, target);
+        el.textContent = current;
+        if (current >= target) clearInterval(interval);
+      }, 40);
+    });
+  }
+ 
+  // ===== GRÁFICO BARRAS =====
+  function renderBarChart(containerId, dados, cores) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const max = Math.max(...dados.map(d => d.valor), 1);
+ 
+    container.innerHTML = dados.map((d, i) => {
+      const pct = (d.valor / max) * 100;
+      const cor = Array.isArray(cores) ? cores[i % cores.length] : cores;
+      return `
+        <div class="bar-col">
+          <span class="bar-value">${d.valor}</span>
+          <div class="bar-fill" style="height:${Math.max(pct, 2)}%;background:${cor};width:100%;" data-value="${d.valor} ${d.label}"></div>
+          <span class="bar-label" title="${d.label}">${d.label}</span>
+        </div>
+      `;
+    }).join('');
+  }
+ 
+  // ===== DONUT CHART SVG =====
+  function renderDonut(containerId, dados) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const total = dados.reduce((s, d) => s + d.valor, 0) || 1;
+    const cx = 70, cy = 70, r = 55, stroke = 22;
+    const circum = 2 * Math.PI * r;
+ 
+    let offset = 0;
+    const arcs = dados.map(d => {
+      const pct = d.valor / total;
+      const dash = pct * circum;
+      const arc = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${d.cor}" stroke-width="${stroke}" stroke-dasharray="${dash} ${circum}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})" style="transition:stroke-dasharray 1s ease;" />`;
+      offset += dash;
+      return arc;
+    }).join('');
+ 
+    container.innerHTML = `
+      <div class="donut-svg-wrap">
+        <svg width="140" height="140" viewBox="0 0 140 140">
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#f0ebe5" stroke-width="${stroke}" />
+          ${arcs}
+        </svg>
+        <div class="donut-center-text">
+          <strong>${total}</strong>
+          <span>Total</span>
+        </div>
+      </div>
+      <div class="donut-legend">
+        ${dados.map(d => `
+          <div class="legend-item">
+            <div class="legend-dot" style="background:${d.cor}"></div>
+            <span>${d.label}</span>
+            <span class="legend-count">${d.valor}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+ 
+  // ===== ALERTAS =====
+  function renderAlertas() {
+    const alimentos = JSON.parse(localStorage.getItem('foodloop_alimentos')) || [];
+    const lista = document.getElementById('alertas-lista');
+    const alertas = [];
+ 
+    alimentos.forEach(a => {
+      if (!a.validade) return;
+      const dias = diasParaValidade(a.validade);
+      if (dias < 0) alertas.push({ tipo: 'critico', emoji: '❌', nome: a.nome, msg: `Venceu há ${Math.abs(dias)} dia(s)` });
+      else if (dias === 0) alertas.push({ tipo: 'critico', emoji: '⚡', nome: a.nome, msg: 'Vence HOJE!' });
+      else if (dias <= 3) alertas.push({ tipo: 'atencao', emoji: '⚠️', nome: a.nome, msg: `Vence em ${dias} dia(s)` });
+    });
+ 
+    if (alertas.length === 0) {
+      lista.innerHTML = '<div class="alerta-item info"><span class="alerta-emoji">✅</span><div class="alerta-texto"><strong>Tudo OK!</strong><span>Nenhum alimento crítico no momento.</span></div></div>';
+      return;
+    }
+ 
+    lista.innerHTML = alertas.slice(0, 8).map(a => `
+      <div class="alerta-item ${a.tipo}" style="animation-delay:0.1s">
+        <span class="alerta-emoji">${a.emoji}</span>
+        <div class="alerta-texto">
+          <strong>${a.nome}</strong>
+          <span>${a.msg}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+ 
+  // ===== RENDER DASHBOARD =====
+  function renderDashboard() {
+    renderKPIs();
+ 
+    const alimentos = JSON.parse(localStorage.getItem('foodloop_alimentos')) || [];
+    const usuarios = JSON.parse(localStorage.getItem('foodloop_usuarios')) || [];
+ 
+    // Categorias
+    const catMap = {};
+    alimentos.forEach(a => {
+      const cat = (a.categoria || '🥡 Outros').split(' ')[1] || 'Outros';
+      catMap[cat] = (catMap[cat] || 0) + 1;
+    });
+    const catCores = ['#E8621A','#2A9D5C','#F5C842','#3B82F6','#8B5CF6','#EC4899','#14B8A6','#F97316'];
+    const catDados = Object.entries(catMap).map(([l, v]) => ({ label: l, valor: v }));
+    renderBarChart('chart-categorias', catDados.length ? catDados : [{ label: 'Sem dados', valor: 0 }], catCores);
+ 
+    // Usuários donut
+    const doadores = usuarios.filter(u => u.tipo === 'doador').length;
+    const receptores = usuarios.filter(u => u.tipo === 'receptor').length;
+    renderDonut('chart-usuarios', [
+      { label: 'Estabelecimentos', valor: doadores, cor: '#E8621A' },
+      { label: 'Receptores', valor: receptores, cor: '#2A9D5C' },
+    ]);
+ 
+    // Validades
+    let vencidos = 0, hoje = 0, urgente = 0, atencao = 0, ok = 0;
+    alimentos.forEach(a => {
+      if (!a.validade) { ok++; return; }
+      const d = diasParaValidade(a.validade);
+      if (d < 0) vencidos++;
+      else if (d === 0) hoje++;
+      else if (d <= 3) urgente++;
+      else if (d <= 7) atencao++;
+      else ok++;
+    });
+    renderBarChart('chart-validades',
+      [{ label: 'Vencido', valor: vencidos }, { label: 'Hoje', valor: hoje }, { label: '≤3d', valor: urgente }, { label: '≤7d', valor: atencao }, { label: 'OK', valor: ok }],
+      ['#dc2626', '#f97316', '#d97706', '#eab308', '#2A9D5C']
+    );
+ 
+    renderAlertas();
+  }
+ 
+  // ===== TABELA USUÁRIOS =====
+  function renderTabelaUsuarios() {
+    const tbody = document.getElementById('tbody-usuarios');
+    const start = (paginaUsuarios - 1) * ITENS_POR_PAGINA;
+    const page = usuariosFiltrados.slice(start, start + ITENS_POR_PAGINA);
+ 
+    if (usuariosFiltrados.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="gestao-empty"><span class="empty-emoji">👤</span><h3>Nenhum usuário encontrado</h3></div></td></tr>`;
+      document.getElementById('usuarios-count').textContent = '0 usuários';
+      renderPaginacao('pag-usuarios', 0, paginaUsuarios, 'mudarPaginaUsuarios');
+      return;
+    }
+ 
+    tbody.innerHTML = page.map(u => `
+      <tr>
+        <td><strong>${u.nome}</strong></td>
+        <td>${u.email}</td>
+        <td>${u.telefone || '—'}</td>
+        <td>${u.endereco || '—'}</td>
+        <td><span class="badge ${u.tipo === 'doador' ? 'badge-doador' : 'badge-receptor'}">${u.tipo === 'doador' ? '🏪 Estab.' : '🙋 Receptor'}</span></td>
+        <td>${u.criadoEm ? new Date(u.criadoEm).toLocaleDateString('pt-BR') : '—'}</td>
+      </tr>
+    `).join('');
+ 
+    document.getElementById('usuarios-count').textContent = `${usuariosFiltrados.length} usuário(s)`;
+    renderPaginacao('pag-usuarios', usuariosFiltrados.length, paginaUsuarios, 'mudarPaginaUsuarios');
+  }
+ 
+  function filtrarUsuarios() {
+    const termo = document.getElementById('filtro-usuario').value.toLowerCase();
+    const tipo = document.getElementById('filtro-tipo-usuario').value;
+    let lista = JSON.parse(localStorage.getItem('foodloop_usuarios')) || [];
+ 
+    if (termo) lista = lista.filter(u => `${u.nome} ${u.email} ${u.endereco}`.toLowerCase().includes(termo));
+    if (tipo) lista = lista.filter(u => u.tipo === tipo);
+ 
+    usuariosFiltrados = lista;
+    paginaUsuarios = 1;
+    renderTabelaUsuarios();
+  }
+ 
+  window.mudarPaginaUsuarios = function(p) { paginaUsuarios = p; renderTabelaUsuarios(); };
+ 
+  // ===== TABELA ALIMENTOS =====
+  function renderTabelaAlimentos() {
+    const tbody = document.getElementById('tbody-alimentos');
+    const start = (paginaAlimentos - 1) * ITENS_POR_PAGINA;
+    const page = alimentosFiltrados.slice(start, start + ITENS_POR_PAGINA);
+ 
+    if (alimentosFiltrados.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8"><div class="gestao-empty"><span class="empty-emoji">🍃</span><h3>Nenhum alimento encontrado</h3></div></td></tr>`;
+      document.getElementById('alimentos-count').textContent = '0 alimentos';
+      renderPaginacao('pag-alimentos', 0, paginaAlimentos, 'mudarPaginaAlimentos');
+      return;
+    }
+ 
+    tbody.innerHTML = page.map(a => {
+      const sv = statusValidade(a.validade);
+      return `
+        <tr>
+          <td><strong>${a.nome}</strong>${a.obs ? `<br><small style="color:var(--cinza-medio);">${a.obs.substring(0,40)}...</small>` : ''}</td>
+          <td>${a.doador || '—'}</td>
+          <td>${a.local || '—'}</td>
+          <td>${formatarData(a.validade)}</td>
+          <td><span class="badge ${sv.badge}">${sv.label}</span></td>
+          <td>${a.quantidade || '—'}</td>
+          <td><span style="font-size:0.82rem;">${a.categoria || '—'}</span></td>
+          <td>
+            <div class="acoes-cell">
+              <button class="btn-acao btn-acao-promo" onclick="abrirModalPromocao(${a.id})" title="Fazer Promoção">🏷️${a.preco_promo ? '<span style=\"font-size:0.65rem;background:var(--laranja);color:white;border-radius:4px;padding:1px 4px;margin-left:2px;\">R$'+a.preco_promo+'</span>' : ''}</button>
+              <button class="btn-acao btn-acao-editar" onclick="abrirEdicaoAlimento(${a.id})">✏️</button>
+              <button class="btn-acao btn-acao-excluir" onclick="excluirAlimento(${a.id})">🗑️</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+ 
+    document.getElementById('alimentos-count').textContent = `${alimentosFiltrados.length} alimento(s)`;
+    renderPaginacao('pag-alimentos', alimentosFiltrados.length, paginaAlimentos, 'mudarPaginaAlimentos');
+  }
+ 
+  function filtrarAlimentos() {
+    const termo = document.getElementById('filtro-alimento').value.toLowerCase();
+    const cat = document.getElementById('filtro-categoria').value;
+    const statusFiltro = document.getElementById('filtro-validade-status').value;
+    let lista = JSON.parse(localStorage.getItem('foodloop_alimentos')) || [];
+ 
+    if (termo) lista = lista.filter(a => `${a.nome} ${a.doador} ${a.local}`.toLowerCase().includes(termo));
+    if (cat) lista = lista.filter(a => a.categoria === cat);
+    if (statusFiltro) {
+      lista = lista.filter(a => {
+        if (!a.validade) return statusFiltro === 'ok';
+        const d = diasParaValidade(a.validade);
+        if (statusFiltro === 'vencido') return d < 0;
+        if (statusFiltro === 'hoje') return d === 0;
+        if (statusFiltro === 'urgente') return d > 0 && d <= 3;
+        if (statusFiltro === 'atencao') return d > 3 && d <= 7;
+        if (statusFiltro === 'ok') return d > 7;
+        return true;
+      });
+    }
+ 
+    alimentosFiltrados = lista;
+    paginaAlimentos = 1;
+    renderTabelaAlimentos();
+  }
+ 
+  window.mudarPaginaAlimentos = function(p) { paginaAlimentos = p; renderTabelaAlimentos(); };
+ 
+  // ===== PAGINAÇÃO =====
+  function renderPaginacao(containerId, total, paginaAtual, callbackName) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const totalPags = Math.ceil(total / ITENS_POR_PAGINA);
+    if (totalPags <= 1) { container.innerHTML = ''; return; }
+ 
+    let html = `<button class="page-btn" onclick="${callbackName}(${Math.max(1, paginaAtual - 1)})">‹</button>`;
+    for (let i = 1; i <= totalPags; i++) {
+      if (i === 1 || i === totalPags || Math.abs(i - paginaAtual) <= 1) {
+        html += `<button class="page-btn ${i === paginaAtual ? 'ativa' : ''}" onclick="${callbackName}(${i})">${i}</button>`;
+      } else if (Math.abs(i - paginaAtual) === 2) {
+        html += `<span style="color:var(--cinza-medio);padding:0 2px;">…</span>`;
+      }
+    }
+    html += `<button class="page-btn" onclick="${callbackName}(${Math.min(totalPags, paginaAtual + 1)})">›</button>`;
+    container.innerHTML = html;
+  }
+ 
+  // ===== ORDENAÇÃO =====
+  window.ordenarTabela = function(tipo, col, th) {
+    const state = sortState[tipo];
+    if (state.col === col) state.dir *= -1;
+    else { state.col = col; state.dir = 1; }
+ 
+    document.querySelectorAll('.tabela-gestao th').forEach(t => t.classList.remove('sorted-asc', 'sorted-desc'));
+    th.classList.add(state.dir === 1 ? 'sorted-asc' : 'sorted-desc');
+ 
+    const sort = (arr) => arr.sort((a, b) => {
+      let va = a[col] || '', vb = b[col] || '';
+      if (typeof va === 'number') return (va - vb) * state.dir;
+      return va.toString().localeCompare(vb.toString()) * state.dir;
+    });
+ 
+    if (tipo === 'usuarios') { usuariosFiltrados = sort([...usuariosFiltrados]); renderTabelaUsuarios(); }
+    else { alimentosFiltrados = sort([...alimentosFiltrados]); renderTabelaAlimentos(); }
+  };
+ 
+
+  // ===== PROMOÇÃO =====
+  window.abrirModalPromocao = function(id) {
+    const alimentos = JSON.parse(localStorage.getItem('foodloop_alimentos')) || [];
+    const a = alimentos.find(x => x.id === id);
+    if (!a) return;
+
+    document.getElementById('promo-alimento-id').value = id;
+    document.getElementById('promo-nome-produto').textContent = a.nome + (a.doador ? ' — ' + a.doador : '');
+    document.getElementById('promo-preco').value = a.preco_promo || '';
+    document.getElementById('promo-obs').value = a.promo_obs || '';
+    atualizarPreview();
+    document.getElementById('modal-promocao').classList.add('aberto');
+  };
+
+  window.atualizarPreview = function() {
+    const val = parseFloat(document.getElementById('promo-preco').value);
+    const preview = document.getElementById('preco-preview');
+    const previewVal = document.getElementById('preco-preview-valor');
+    if (val > 0) {
+      preview.style.display = 'block';
+      previewVal.textContent = 'R$ ' + val.toFixed(2).replace('.', ',');
+    } else {
+      preview.style.display = 'none';
+    }
+  };
+
+  window.salvarPromocao = function() {
+    const id = parseInt(document.getElementById('promo-alimento-id').value);
+    const preco = parseFloat(document.getElementById('promo-preco').value);
+    const obs = document.getElementById('promo-obs').value.trim();
+
+    if (!preco || preco <= 0) {
+      mostrarToast('Informe um preço válido.', 'erro');
+      return;
+    }
+
+    let alimentos = JSON.parse(localStorage.getItem('foodloop_alimentos')) || [];
+    const idx = alimentos.findIndex(a => a.id === id);
+    if (idx === -1) return;
+
+    alimentos[idx].preco_promo = preco.toFixed(2);
+    alimentos[idx].promo_obs = obs;
+    alimentos[idx].promo_at = new Date().toISOString();
+
+    localStorage.setItem('foodloop_alimentos', JSON.stringify(alimentos));
+    fecharModal('modal-promocao');
+    filtrarAlimentos();
+    mostrarToast(`Promoção de R$ ${preco.toFixed(2).replace('.', ',')} aplicada! 🏷️`, 'sucesso');
+  };
+
+  window.removerPromocao = function() {
+    const id = parseInt(document.getElementById('promo-alimento-id').value);
+    let alimentos = JSON.parse(localStorage.getItem('foodloop_alimentos')) || [];
+    const idx = alimentos.findIndex(a => a.id === id);
+    if (idx === -1) return;
+
+    delete alimentos[idx].preco_promo;
+    delete alimentos[idx].promo_obs;
+    delete alimentos[idx].promo_at;
+
+    localStorage.setItem('foodloop_alimentos', JSON.stringify(alimentos));
+    fecharModal('modal-promocao');
+    filtrarAlimentos();
+    mostrarToast('Promoção removida.', 'info');
+  };
+
+  // ===== EDITAR ALIMENTO =====
+  window.abrirEdicaoAlimento = function(id) {
+    const alimentos = JSON.parse(localStorage.getItem('foodloop_alimentos')) || [];
+    const a = alimentos.find(x => x.id === id);
+    if (!a) return;
+ 
+    document.getElementById('edit-alimento-id').value = id;
+    document.getElementById('edit-nome').value = a.nome || '';
+    document.getElementById('edit-doador').value = a.doador || '';
+    document.getElementById('edit-local').value = a.local || '';
+    document.getElementById('edit-validade').value = a.validade || '';
+    document.getElementById('edit-quantidade').value = a.quantidade || '';
+    document.getElementById('edit-categoria').value = a.categoria || '';
+    document.getElementById('edit-obs').value = a.obs || '';
+ 
+    document.getElementById('modal-editar-alimento').classList.add('aberto');
+  };
+ 
+  window.salvarEdicaoAlimento = function() {
+    const id = parseInt(document.getElementById('edit-alimento-id').value);
+    let alimentos = JSON.parse(localStorage.getItem('foodloop_alimentos')) || [];
+    const idx = alimentos.findIndex(a => a.id === id);
+    if (idx === -1) return;
+ 
+    alimentos[idx] = {
+      ...alimentos[idx],
+      nome: document.getElementById('edit-nome').value.trim(),
+      doador: document.getElementById('edit-doador').value.trim(),
+      local: document.getElementById('edit-local').value.trim(),
+      validade: document.getElementById('edit-validade').value,
+      quantidade: parseInt(document.getElementById('edit-quantidade').value) || null,
+      categoria: document.getElementById('edit-categoria').value,
+      obs: document.getElementById('edit-obs').value.trim(),
+    };
+ 
+    localStorage.setItem('foodloop_alimentos', JSON.stringify(alimentos));
+    fecharModal('modal-editar-alimento');
+    filtrarAlimentos();
+    renderDashboard();
+    renderEstatisticas();
+    mostrarToast('Alimento atualizado com sucesso!', 'sucesso');
+  };
+ 
+  // ===== EXCLUIR ALIMENTO =====
+  window.excluirAlimento = function(id) {
+    if (!confirm('Tem certeza que deseja excluir este alimento permanentemente?')) return;
+    let alimentos = JSON.parse(localStorage.getItem('foodloop_alimentos')) || [];
+    alimentos = alimentos.filter(a => a.id !== id);
+    localStorage.setItem('foodloop_alimentos', JSON.stringify(alimentos));
+    filtrarAlimentos();
+    renderDashboard();
+    renderEstatisticas();
+    mostrarToast('Alimento removido.', 'info');
+  };
+ 
+  // ===== ESTATÍSTICAS =====
+  function renderEstatisticas() {
+    const alimentos = JSON.parse(localStorage.getItem('foodloop_alimentos')) || [];
+    const usuarios = JSON.parse(localStorage.getItem('foodloop_usuarios')) || [];
+    const estoque = JSON.parse(localStorage.getItem('foodloop_estoque')) || [];
+ 
+    const disponiveis = alimentos.filter(a => !a.validade || diasParaValidade(a.validade) >= 0);
+    const vencidos = alimentos.filter(a => a.validade && diasParaValidade(a.validade) < 0);
+    const criticos = alimentos.filter(a => a.validade && diasParaValidade(a.validade) >= 0 && diasParaValidade(a.validade) <= 3);
+    const qtdTotal = alimentos.reduce((s, a) => s + (a.quantidade || 0), 0);
+ 
+    const catMap = {};
+    alimentos.forEach(a => { const c = a.categoria || '🥡 Outros'; catMap[c] = (catMap[c] || 0) + 1; });
+    const catOrdenada = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
+ 
+    const grid = document.getElementById('resumo-stats-grid');
+    const catMax = catOrdenada[0]?.[1] || 1;
+ 
+    grid.innerHTML = `
+      <div class="resumo-stat-card">
+        <h4>🥗 Resumo dos Alimentos</h4>
+        <div class="stat-row"><span class="stat-row-label">Total cadastrado</span><span class="stat-row-value">${alimentos.length}</span></div>
+        <div class="stat-row"><span class="stat-row-label">Disponíveis (válidos)</span><span class="stat-row-value" style="color:var(--verde)">${disponiveis.length}</span></div>
+        <div class="stat-row"><span class="stat-row-label">Vencidos</span><span class="stat-row-value" style="color:#dc2626">${vencidos.length}</span></div>
+        <div class="stat-row"><span class="stat-row-label">Urgentes (≤3 dias)</span><span class="stat-row-value" style="color:#d97706">${criticos.length}</span></div>
+        <div class="stat-row"><span class="stat-row-label">Qtd. total informada</span><span class="stat-row-value">${qtdTotal}</span></div>
+      </div>
+ 
+      <div class="resumo-stat-card">
+        <h4>👥 Resumo dos Usuários</h4>
+        <div class="stat-row"><span class="stat-row-label">Total de usuários</span><span class="stat-row-value">${usuarios.length}</span></div>
+        <div class="stat-row"><span class="stat-row-label">Estabelecimentos</span><span class="stat-row-value" style="color:var(--laranja)">${usuarios.filter(u=>u.tipo==='doador').length}</span></div>
+        <div class="stat-row"><span class="stat-row-label">Receptores</span><span class="stat-row-value" style="color:var(--verde)">${usuarios.filter(u=>u.tipo==='receptor').length}</span></div>
+        <div class="stat-row"><span class="stat-row-label">Com telefone</span><span class="stat-row-value">${usuarios.filter(u=>u.telefone).length}</span></div>
+        <div class="stat-row"><span class="stat-row-label">Itens no estoque</span><span class="stat-row-value">${estoque.length}</span></div>
+      </div>
+ 
+      <div class="resumo-stat-card">
+        <h4>📊 Categorias — Top ${Math.min(5, catOrdenada.length)}</h4>
+        ${catOrdenada.slice(0,5).map(([cat, qtd]) => `
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-label"><span>${cat}</span><span>${qtd}</span></div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" style="width:${(qtd/catMax)*100}%;background:var(--laranja);"></div>
+            </div>
+          </div>
+        `).join('')}
+        ${catOrdenada.length === 0 ? '<p style="color:var(--cinza-medio);font-size:0.85rem;">Nenhum dado ainda.</p>' : ''}
+      </div>
+    `;
+ 
+    // Gráfico completo de categorias
+    const catCores = ['#E8621A','#2A9D5C','#F5C842','#3B82F6','#8B5CF6','#EC4899','#14B8A6','#F97316'];
+    const catDados = catOrdenada.map(([l, v]) => ({
+      label: l.split(' ').slice(1).join(' ') || l,
+      valor: v
+    }));
+    renderBarChart('chart-stats-full', catDados.length ? catDados : [{ label: 'Sem dados', valor: 0 }], catCores);
+ 
+    // Gráfico validade
+    let venc = 0, hj = 0, urg = 0, atenc = 0, ok = 0;
+    alimentos.forEach(a => {
+      if (!a.validade) { ok++; return; }
+      const d = diasParaValidade(a.validade);
+      if (d < 0) venc++;
+      else if (d === 0) hj++;
+      else if (d <= 3) urg++;
+      else if (d <= 7) atenc++;
+      else ok++;
+    });
+    renderBarChart('chart-stats-validade',
+      [
+        { label: 'Vencidos', valor: venc },
+        { label: 'Vence hoje', valor: hj },
+        { label: 'Urgente (≤3d)', valor: urg },
+        { label: 'Atenção (≤7d)', valor: atenc },
+        { label: 'OK (+7d)', valor: ok },
+      ],
+      ['#dc2626','#f97316','#d97706','#eab308','#2A9D5C']
+    );
+  }
+ 
+  // ===== EXPORTAR CSV =====
+  window.exportarCSV = function() {
+    const alimentos = JSON.parse(localStorage.getItem('foodloop_alimentos')) || [];
+    const usuarios = JSON.parse(localStorage.getItem('foodloop_usuarios')) || [];
+ 
+    let csv = 'ALIMENTOS\n';
+    csv += 'Nome,Estabelecimento,Local,Validade,Quantidade,Categoria,Observações\n';
+    alimentos.forEach(a => {
+      csv += `"${a.nome || ''}","${a.doador || ''}","${a.local || ''}","${a.validade || ''}","${a.quantidade || ''}","${a.categoria || ''}","${(a.obs || '').replace(/"/g, "'")}"\n`;
+    });
+ 
+    csv += '\nUSUÁRIOS\n';
+    csv += 'Nome,Email,Telefone,Cidade,Tipo,Cadastrado em\n';
+    usuarios.forEach(u => {
+      csv += `"${u.nome || ''}","${u.email || ''}","${u.telefone || ''}","${u.endereco || ''}","${u.tipo || ''}","${u.criadoEm ? new Date(u.criadoEm).toLocaleDateString('pt-BR') : ''}"\n`;
+    });
+ 
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `foodloop-dados-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    mostrarToast('CSV exportado com sucesso!', 'sucesso');
+  };
+ 
+  // ===== EXPORTAR JSON =====
+  window.exportarJSON = function() {
+    const dados = {
+      exportadoEm: new Date().toISOString(),
+      alimentos: JSON.parse(localStorage.getItem('foodloop_alimentos')) || [],
+      usuarios: JSON.parse(localStorage.getItem('foodloop_usuarios')) || [],
+      estoque: JSON.parse(localStorage.getItem('foodloop_estoque')) || [],
+    };
+    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `foodloop-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    mostrarToast('JSON exportado com sucesso!', 'sucesso');
+  };
+ 
+  // ===== FECHAR MODAIS AO CLICAR FORA =====
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === this) fecharModal(this.id);
+    });
+  });
+ 
+  // ===== INICIALIZAR =====
+  document.addEventListener('DOMContentLoaded', () => {
+    // Inicializar dados filtrados
+    usuariosFiltrados = JSON.parse(localStorage.getItem('foodloop_usuarios')) || [];
+    alimentosFiltrados = JSON.parse(localStorage.getItem('foodloop_alimentos')) || [];
+ 
+    renderDashboard();
+    renderTabelaUsuarios();
+    renderTabelaAlimentos();
+    renderEstatisticas();
+  });
+  </script>
+</body>
+</html>

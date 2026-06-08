@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoodLoop - Cadastro</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    main {
+      background: linear-gradient(160deg, var(--creme) 0%, #f0fdf4 100%);
+      min-height: calc(100vh - 72px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1rem;
+    }
+
+    .cadastro-card {
+      background: var(--branco);
+      border-radius: var(--radius);
+      padding: 2.5rem;
+      max-width: 540px;
+      width: 100%;
+      box-shadow: 0 8px 40px rgba(124,79,42,0.12);
+      border: 1.5px solid var(--borda);
+      animation: heroFadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .cadastro-logo {
+      text-align: center;
+      font-family: 'Fraunces', serif;
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: var(--laranja);
+      margin-bottom: 0.4rem;
+      letter-spacing: -1px;
+    }
+
+    .cadastro-logo span { color: var(--verde); }
+
+    .cadastro-sub {
+      text-align: center;
+      color: var(--cinza-medio);
+      font-size: 0.92rem;
+      margin-bottom: 2rem;
+    }
+
+    .cadastro-card h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.7rem;
+      color: var(--cinza-escuro);
+      text-align: center;
+      margin-bottom: 1.8rem;
+      letter-spacing: -0.5px;
+    }
+
+    #info-tipo {
+      display: none;
+      margin-bottom: 1.2rem;
+      padding: 0.9rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      color: var(--cinza-medio);
+      animation: fadeSlide 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">Food<span>Loop</span></div>
+    <nav>
+      <a href="index.html">← Voltar ao início</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="cadastro-card">
+      <div class="cadastro-logo">Food<span>Loop</span></div>
+      <p class="cadastro-sub">Plataforma de doação de alimentos · Ibirapitanga-BA</p>
+
+      <h2>Crie sua conta</h2>
+
+      <form id="form-cadastro">
+        <label for="nome">Nome completo</label>
+        <input type="text" id="nome" name="nome" placeholder="Seu nome ou nome do estabelecimento" required autocomplete="name">
+
+        <label for="email">E-mail</label>
+        <input type="email" id="email" name="email" placeholder="seu@email.com" required autocomplete="email">
+
+        <div class="form-row">
+          <div>
+            <label for="telefone">Telefone (opcional)</label>
+            <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000" autocomplete="tel">
+          </div>
+          <div>
+            <label for="endereco">Cidade / Região</label>
+            <input type="text" id="endereco" name="endereco" placeholder="Ex: Ibirapitanga-BA" required>
+          </div>
+        </div>
+
+        <label for="tipo">Você é:</label>
+        <select id="tipo" name="tipo" required>
+          <option value="">Selecione seu perfil...</option>
+          <option value="doador">🏪 Estabelecimento — Mercado, padaria, restaurante ou produtor</option>
+          <option value="receptor">🙋 Receptor — Pessoa física que deseja receber alimentos</option>
+        </select>
+
+        <div id="info-tipo"></div>
+
+        <button type="submit">Criar minha conta 🚀</button>
+      </form>
+
+      <div id="mensagem-cadastro"></div>
+      <a href="index.html" class="link-voltar">Já tem conta? Voltar ao início</a>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+  <script>
+    // Redirecionar para nova página de login/cadastro
+    window.location.href = 'login.html?tab=cadastro';
+  </script>
+  <script>
+    document.getElementById('tipo').addEventListener('change', function () {
+      const info = document.getElementById('info-tipo');
+      if (this.value === 'doador') {
+        info.style.display = 'block';
+        info.style.background = 'var(--laranja-claro)';
+        info.style.borderLeft = '4px solid var(--laranja)';
+        info.innerHTML = '🏪 <strong>Estabelecimentos</strong> podem cadastrar alimentos para doação e acessar o Controle de Estoque Inteligente. Você é protegido pela <strong>Lei nº 14.016/2020</strong>.';
+      } else if (this.value === 'receptor') {
+        info.style.display = 'block';
+        info.style.background = 'var(--verde-claro)';
+        info.style.borderLeft = '4px solid var(--verde)';
+        info.innerHTML = '🙋 <strong>Receptores</strong> podem buscar e solicitar alimentos disponíveis próximos ao vencimento, de forma 100% gratuita.';
+      } else {
+        info.style.display = 'none';
+      }
+    });
+
+    document.getElementById('form-cadastro').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const nome = document.getElementById('nome').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const telefone = document.getElementById('telefone').value.trim();
+      const endereco = document.getElementById('endereco').value.trim();
+      const tipo = document.getElementById('tipo').value;
+
+      // Salvar usuário na lista global
+      let usuarios = JSON.parse(localStorage.getItem('foodloop_usuarios')) || [];
+      const existe = usuarios.find(u => u.email === email);
+      if (!existe) {
+        usuarios.push({ nome, email, telefone, endereco, tipo, criadoEm: new Date().toISOString() });
+        localStorage.setItem('foodloop_usuarios', JSON.stringify(usuarios));
+      } else {
+        // Atualizar dados se já existir (caso o usuário esteja refazendo cadastro)
+        Object.assign(existe, { nome, telefone, endereco, tipo });
+        localStorage.setItem('foodloop_usuarios', JSON.stringify(usuarios));
+      }
+
+      localStorage.setItem('foodloop_user', nome);
+      localStorage.setItem('foodloop_user_tipo', tipo);
+      localStorage.setItem('foodloop_user_local', endereco);
+
+      const msg = document.getElementById('mensagem-cadastro');
+      msg.textContent = '✅ Conta criada com sucesso! Redirecionando...';
+      msg.style.color = 'var(--verde)';
+
+      setTimeout(() => {
+        window.location.href = tipo === 'doador' ? 'cadastro-alimento.html' : 'index.html';
+      }, 1400);
+    });
+  </script>
+</body>
+</html>
