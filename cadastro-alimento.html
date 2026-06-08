@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FoodLoop - Cadastrar Alimento</title>
+  <title>FoodLoop - Cadastrar Promoção</title>
   <link rel="stylesheet" href="style.css">
   <style>
     main {
@@ -161,8 +161,8 @@
 
   <main>
     <div class="form-card">
-      <h2>Cadastrar Alimento para Doação</h2>
-      <p>Preencha os dados do alimento. Ele ficará visível para receptores na plataforma.</p>
+      <h2>Cadastrar Alimento para Promoção</h2>
+      <p>Preencha os dados do alimento. Ele ficará visível na plataforma como oferta promocional.</p>
 
       <div id="aviso-estoque">
         <span>💡 <strong>Dica:</strong> Você tem produtos no seu estoque!</span>
@@ -203,6 +203,12 @@
         <label for="validade-alimento">Data de validade *</label>
         <input type="date" id="validade-alimento" required>
 
+        <label for="preco-promo">💰 Preço promocional (R$)</label>
+        <input type="number" id="preco-promo" step="0.01" min="0" placeholder="Ex: 4,99">
+        <small style="display: block; margin-top: -0.8rem; margin-bottom: 1.2rem; color: var(--cinza-medio);">
+          ⭐ Ofertas com preço destacado aparecem com selo "PROMOÇÃO" na página inicial.
+        </small>
+
         <label for="obs-alimento">Observações (opcional)</label>
         <textarea id="obs-alimento" rows="2" style="resize:vertical;"></textarea>
 
@@ -218,7 +224,7 @@
           <button type="button" class="btn-remover-img" id="btn-remover-img" title="Remover foto">✕</button>
         </div>
 
-        <button type="submit" id="btn-submit">📢 Publicar Alimento</button>
+        <button type="submit" id="btn-submit">📢 Publicar Promoção</button>
       </form>
 
       <div id="mensagem-alimento"></div>
@@ -240,7 +246,6 @@
   <script>
     // ========== SEGURANÇA E INICIALIZAÇÃO ==========
     (function() {
-      // Verificar login e tipo de usuário ANTES de qualquer coisa
       const tipo = localStorage.getItem('foodloop_user_tipo');
       const user = localStorage.getItem('foodloop_user');
       
@@ -253,7 +258,6 @@
         return;
       }
 
-      // Garantir que a função mostrarToast exista (fallback)
       if (typeof window.mostrarToast !== 'function') {
         window.mostrarToast = function(msg, tipo = 'info') {
           alert(msg);
@@ -261,34 +265,27 @@
         };
       }
 
-      // Aguardar DOM completamente carregado
       document.addEventListener('DOMContentLoaded', function() {
-        // Preencher campos automáticos
         const usuarioNome = localStorage.getItem('foodloop_user');
         const userLocal = localStorage.getItem('foodloop_user_local');
         if (usuarioNome) document.getElementById('doador-alimento').value = usuarioNome;
         if (userLocal) document.getElementById('local-alimento').value = userLocal;
         
-        // Data mínima = hoje
         const hoje = new Date().toISOString().split('T')[0];
         document.getElementById('validade-alimento').min = hoje;
         
-        // Verificar estoque para mostrar aviso
         const estoque = JSON.parse(localStorage.getItem('foodloop_estoque')) || [];
         if (estoque.length > 0) {
           document.getElementById('aviso-estoque').style.display = 'flex';
         }
         
-        // Configurar upload de imagem
         configurarUpload();
         
-        // Configurar evento de submit do formulário
         const form = document.getElementById('form-alimento');
         form.addEventListener('submit', publicarAlimento);
       });
     })();
 
-    // ========== FUNÇÕES DE UPLOAD ==========
     let imagemBase64 = null;
 
     function configurarUpload() {
@@ -343,11 +340,9 @@
       });
     }
 
-    // ========== FUNÇÃO PRINCIPAL DE PUBLICAÇÃO ==========
     function publicarAlimento(event) {
       event.preventDefault();
 
-      // Coletar campos
       const nome = document.getElementById('nome-alimento').value.trim();
       const doador = document.getElementById('doador-alimento').value.trim();
       const local = document.getElementById('local-alimento').value.trim();
@@ -355,8 +350,9 @@
       const categoria = document.getElementById('categoria').value;
       const quantidadeRaw = document.getElementById('quantidade-alimento').value;
       const obs = document.getElementById('obs-alimento').value.trim();
+      const precoPromo = document.getElementById('preco-promo').value;
+      const precoPromoNum = precoPromo ? parseFloat(precoPromo.replace(',', '.')) : null;
 
-      // Validação básica
       if (!nome) {
         mostrarToast('Por favor, informe o nome do alimento.', 'erro');
         return;
@@ -376,7 +372,6 @@
 
       const quantidade = quantidadeRaw ? parseInt(quantidadeRaw) : null;
 
-      // Criar objeto do alimento
       const novoAlimento = {
         id: Date.now(),
         nome,
@@ -387,31 +382,28 @@
         quantidade,
         obs,
         imagem: imagemBase64,
+        preco_promo: precoPromoNum && !isNaN(precoPromoNum) ? precoPromoNum.toFixed(2) : null,
         criadoEm: new Date().toISOString()
       };
 
-      // Salvar no localStorage
       const alimentos = JSON.parse(localStorage.getItem('foodloop_alimentos')) || [];
       alimentos.unshift(novoAlimento);
       localStorage.setItem('foodloop_alimentos', JSON.stringify(alimentos));
 
-      // Mensagem de sucesso
       const msgDiv = document.getElementById('mensagem-alimento');
-      msgDiv.textContent = '✅ Alimento publicado com sucesso! Redirecionando...';
+      msgDiv.textContent = '✅ Promoção publicada com sucesso! Redirecionando...';
       msgDiv.style.color = 'var(--verde)';
       msgDiv.style.fontWeight = '700';
       msgDiv.style.textAlign = 'center';
       msgDiv.style.marginTop = '1rem';
 
-      mostrarToast('Alimento publicado! 🎉', 'sucesso');
+      mostrarToast('Promoção publicada! 🎉', 'sucesso');
 
-      // Redirecionar após 1,5 segundos
       setTimeout(() => {
         window.location.href = 'index.html';
       }, 1500);
     }
 
-    // ========== FUNÇÕES DO MODAL DE ESTOQUE ==========
     window.abrirModalEstoque = function() {
       const estoqueAtual = JSON.parse(localStorage.getItem('foodloop_estoque')) || [];
       const listaDiv = document.getElementById('lista-estoque-modal');
@@ -449,7 +441,6 @@
       }
     };
 
-    // Fechar modal ao clicar fora
     document.getElementById('modal-estoque').addEventListener('click', function(e) {
       if (e.target === this) fecharModalEstoque();
     });
