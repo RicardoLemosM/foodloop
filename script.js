@@ -351,12 +351,15 @@ function initScrollReveal() {
 
 // ===== CONTROLE DO BOTÃO CADASTRAR ALIMENTO =====
 function controlarBotaoCadastrar() {
+  const tipo = getTipoUsuario();
+  const isDoador = tipo === 'doador';
+
   const btn = document.getElementById('btn-cadastrar-alimento');
-  if (btn) btn.style.display = getTipoUsuario() === 'doador' ? 'inline-flex' : 'none';
+  if (btn) btn.style.display = isDoador ? 'inline-flex' : 'none';
 
   // Mostrar link de estoque só para doadores
   const linkEstoque = document.getElementById('link-estoque');
-  if (linkEstoque) linkEstoque.style.display = getTipoUsuario() === 'doador' ? 'inline-flex' : 'none';
+  if (linkEstoque) linkEstoque.style.display = isDoador ? '' : 'none';
 }
 
 // ===== INICIALIZAÇÃO =====
@@ -379,9 +382,13 @@ function inicializar() {
   if (stat) animateCounter(stat, disponiveis.length);
 }
 
-// Roda tanto no DOMContentLoaded quanto imediatamente (cobre file:// e Live Server)
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', inicializar);
-} else {
-  inicializar();
+// Garante execução sempre após o DOM estar pronto
+function inicializarQuandoPronto() {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inicializar);
+  } else {
+    inicializar();
+  }
 }
+
+inicializarQuandoPronto();
