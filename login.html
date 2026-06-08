@@ -256,23 +256,21 @@
 
   <script src="script.js"></script>
   <script>
-    // Pegar parâmetro de URL para abrir tab correta
-    const params = new URLSearchParams(window.location.search);
-
     // Redirecionar se já logado
     if (localStorage.getItem('foodloop_user')) {
       window.location.href = 'index.html';
     }
 
-    // Mostrar aviso se veio da guarda de doadores
-    if (params.get('aviso') === 'apenas-doadores') {
-      const erroEl = document.getElementById('erro-login');
-      if (erroEl) {
-        erroEl.style.display = 'block';
-        erroEl.textContent = '⚠️ Apenas estabelecimentos (doadores) podem cadastrar alimentos. Entre com uma conta de estabelecimento.';
-      }
+    function trocarTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('ativo', (i === 0 && tab === 'login') || (i === 1 && tab === 'cadastro'));
+      });
+      document.getElementById('painel-login').classList.toggle('ativo', tab === 'login');
+      document.getElementById('painel-cadastro').classList.toggle('ativo', tab === 'cadastro');
     }
 
+    // Pegar parâmetro de URL para abrir tab correta
+    const params = new URLSearchParams(window.location.search);
     if (params.get('tab') === 'cadastro') trocarTab('cadastro');
 
     // Eventos dos botões de aba (sem onclick inline)
